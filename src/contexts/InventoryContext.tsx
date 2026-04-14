@@ -50,16 +50,11 @@ interface InventoryContextType {
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
 
-export function InventoryProvider({ children, tenantId }: { children: ReactNode; tenantId: string | null }) {
+export function InventoryProvider({ children }: { children: ReactNode }) {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchInventory = useCallback(async () => {
-    if (!tenantId) {
-      setInventory([]);
-      setLoading(false);
-      return;
-    }
     try {
       const PAGE_SIZE = 1000;
       let allProducts: any[] = [];
@@ -72,7 +67,6 @@ export function InventoryProvider({ children, tenantId }: { children: ReactNode;
         const { data, error } = await supabase
           .from("products")
           .select("*")
-          .eq("tenant_id", tenantId)
           .order("product")
           .range(from, to);
 
@@ -87,35 +81,15 @@ export function InventoryProvider({ children, tenantId }: { children: ReactNode;
         }
       }
 
-      const today = new Date().toISOString().split("T")[0];
-      const { data: ordersData, error: ordersError } = await supabase
-        .from("orders")
-        .select(`id, status, deleted_at, delivery_date, order_items (product_name, quantity)`)
-        .eq("tenant_id", tenantId)
-        .is("deleted_at", null)
-        .in("status", ["open", "in_behandeling", "gereed"])
-        .gte("delivery_date", today);
-
-      if (ordersError) throw ordersError;
-
-      const reservedMap = new Map<string, number>();
-      (ordersData || []).forEach((order) => {
-        (order.order_items || []).forEach((item: { product_name: string; quantity: number }) => {
-          const current = reservedMap.get(item.product_name) || 0;
-          reservedMap.set(item.product_name, current + item.quantity);
-        });
-      });
-
       const items: InventoryItem[] = allProducts.map((item) => {
-        const reserved = reservedMap.get(item.product) || 0;
-        const available = Math.max(0, item.quantity - reserved);
+        const available = item.quantity;
         return {
           id: item.id,
           product: item.product,
           batch: item.batch,
           location: item.location,
           quantity: item.quantity,
-          reservedQuantity: reserved,
+          reservedQuantity: 0,
           availableQuantity: available,
           minQuantity: item.min_quantity,
           unit: item.unit,
@@ -151,7 +125,7 @@ export function InventoryProvider({ children, tenantId }: { children: ReactNode;
     } finally {
       setLoading(false);
     }
-  }, [tenantId]);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -160,7 +134,6 @@ export function InventoryProvider({ children, tenantId }: { children: ReactNode;
 
   const addProduct = async (newProduct: NewProductInput) => {
     try {
-      if (!tenantId) throw new Error("Geen tenant gevonden");
       const { error } = await supabase.from("products").insert({
         product: newProduct.product,
         batch: newProduct.batch,
@@ -181,7 +154,6 @@ export function InventoryProvider({ children, tenantId }: { children: ReactNode;
         plant_height: newProduct.plantHeight,
         quality_group: newProduct.qualityGroup,
         product_type: newProduct.productType,
-        tenant_id: tenantId,
       });
 
       if (error) throw error;

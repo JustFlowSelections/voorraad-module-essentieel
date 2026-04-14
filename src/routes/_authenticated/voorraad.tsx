@@ -22,16 +22,14 @@ export const Route = createFileRoute("/_authenticated/voorraad")({
 });
 
 function VoorraadWrapper() {
-  const context = Route.useRouteContext() as any;
-  const tenantId = context.auth?.tenantId ?? null;
   return (
-    <InventoryProvider tenantId={tenantId}>
-      <VoorraadPage tenantId={tenantId} />
+    <InventoryProvider>
+      <VoorraadPage />
     </InventoryProvider>
   );
 }
 
-function VoorraadPage({ tenantId }: { tenantId: string | null }) {
+function VoorraadPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -48,28 +46,25 @@ function VoorraadPage({ tenantId }: { tenantId: string | null }) {
   const { inventory, loading, addProduct, updateProduct, refreshInventory } = useInventory();
 
   useEffect(() => {
-    if (!tenantId) return;
     (async () => {
       const { data } = await supabase
         .from("inventory_settings")
         .select("hierarchy_levels, visible_columns")
-        .eq("tenant_id", tenantId)
         .maybeSingle();
       if (data?.hierarchy_levels) setHierarchyLevels(data.hierarchy_levels as HierarchyLevel[]);
       if (data?.visible_columns) setVisibleColumns(data.visible_columns as ColumnKey[]);
     })();
-  }, [tenantId]);
+  }, []);
 
   const toggleColumn = async (key: ColumnKey) => {
     const newCols = visibleColumns.includes(key) ? visibleColumns.filter((c) => c !== key) : [...visibleColumns, key];
     if (newCols.length === 0) return;
     setVisibleColumns(newCols);
-    if (!tenantId) return;
-    const { data: existing } = await supabase.from("inventory_settings").select("id").eq("tenant_id", tenantId).maybeSingle();
+    const { data: existing } = await supabase.from("inventory_settings").select("id").maybeSingle();
     if (existing) {
-      await supabase.from("inventory_settings").update({ visible_columns: newCols, updated_at: new Date().toISOString() }).eq("tenant_id", tenantId);
+      await supabase.from("inventory_settings").update({ visible_columns: newCols, updated_at: new Date().toISOString() }).eq("id", existing.id);
     } else {
-      await supabase.from("inventory_settings").insert({ tenant_id: tenantId, visible_columns: newCols });
+      await supabase.from("inventory_settings").insert({ visible_columns: newCols });
     }
   };
 
@@ -115,7 +110,6 @@ function VoorraadPage({ tenantId }: { tenantId: string | null }) {
     <>
       <Header title="Voorraadbeheer" />
       <div className="p-6 space-y-6">
-        {/* Actions Bar */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-1 gap-4">
             <div className="relative flex-1 max-w-md">
@@ -166,7 +160,6 @@ function VoorraadPage({ tenantId }: { tenantId: string | null }) {
           </div>
         </div>
 
-        {/* Folder Browser */}
         <div className="rounded-xl border border-border bg-card shadow-sm p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
@@ -175,9 +168,9 @@ function VoorraadPage({ tenantId }: { tenantId: string | null }) {
           )}
         </div>
 
-        <AddProductDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={handleAddProduct} tenantId={tenantId} />
+        <AddProductDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={handleAddProduct} />
         <ProductDetailDialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen} product={selectedProduct} onUpdate={handleUpdateProduct} />
-        <ImportProductsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImportComplete={refreshInventory} tenantId={tenantId} />
+        <ImportProductsDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} onImportComplete={refreshInventory} />
       </div>
     </>
   );

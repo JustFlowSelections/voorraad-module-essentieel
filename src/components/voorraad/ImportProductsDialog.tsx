@@ -19,7 +19,6 @@ interface ImportProductsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImportComplete: () => void;
-  tenantId: string | null;
 }
 
 interface ColumnMapping {
@@ -66,7 +65,7 @@ const EMPTY_MAPPING: ColumnMapping = {
   color: "", shade: "", vbnCode: "", piecesPerTray: "", plantHeight: "", qualityGroup: "", imageUrl: "",
 };
 
-export function ImportProductsDialog({ open, onOpenChange, onImportComplete, tenantId }: ImportProductsDialogProps) {
+export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: ImportProductsDialogProps) {
   const [step, setStep] = useState<"type" | "upload" | "map" | "preview" | "importing">("type");
   const [productType, setProductType] = useState<"levend" | "dood" | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
@@ -126,16 +125,15 @@ export function ImportProductsDialog({ open, onOpenChange, onImportComplete, ten
   const canProceedToPreview = mapping.product && mapping.batch && mapping.location && validRows.length > 0;
 
   const handleImport = async () => {
-    if (!tenantId) { toast.error("Geen tenant gevonden."); return; }
     setStep("importing");
     let success = 0; let errors = 0; let lastError = "";
     for (let i = 0; i < validRows.length; i += 50) {
-      const batch = validRows.slice(i, i + 50).map((row) => ({ ...row, tenant_id: tenantId }));
+      const batch = validRows.slice(i, i + 50);
       const { error } = await supabase.from("products").insert(batch);
       if (error) {
         lastError = error.message;
         for (const row of batch) {
-          const { error: rowError } = await supabase.from("products").insert(row);
+          const { error: rowError } = await supabase.from("products").insert([row]);
           if (rowError) { errors++; lastError = rowError.message; } else { success++; }
         }
       } else { success += batch.length; }

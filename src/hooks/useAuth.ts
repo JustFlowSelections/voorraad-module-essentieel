@@ -12,7 +12,6 @@ export interface AuthState {
   isAdmin: boolean;
   isAuthenticated: boolean;
   profile: { display_name: string | null; email: string | null } | null;
-  tenantId: string | null;
 }
 
 export interface AuthActions {
@@ -30,21 +29,18 @@ export function useAuthState(): AuthContext {
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [profile, setProfile] = useState<AuthState["profile"]>(null);
-  const [tenantId, setTenantId] = useState<string | null>(null);
 
   const isAdmin = roles.includes("admin");
   const isAuthenticated = !!user;
 
   const fetchUserData = useCallback(async (userId: string) => {
     try {
-      const [rolesRes, profileRes, tenantRes] = await Promise.all([
+      const [rolesRes, profileRes] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", userId),
         supabase.from("profiles").select("display_name, email").eq("id", userId).single(),
-        supabase.from("tenant_users").select("tenant_id").eq("user_id", userId).limit(1).single(),
       ]);
       if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role as AppRole));
       if (profileRes.data) setProfile(profileRes.data);
-      if (tenantRes.data) setTenantId(tenantRes.data.tenant_id);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -64,7 +60,6 @@ export function useAuthState(): AuthContext {
       } else {
         setRoles([]);
         setProfile(null);
-        setTenantId(null);
       }
     });
 
@@ -95,7 +90,7 @@ export function useAuthState(): AuthContext {
   };
 
   return {
-    user, session, loading, roles, isAdmin, isAuthenticated, profile, tenantId,
+    user, session, loading, roles, isAdmin, isAuthenticated, profile,
     signIn, signOut, resetPassword, refreshRoles,
   };
 }
