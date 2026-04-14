@@ -11,17 +11,6 @@ import {
 import { RefreshCw, Leaf, Box, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface FieldSetting {
-  id: string;
-  field_key: string;
-  field_label: string;
-  field_type: string;
-  is_active: boolean;
-  is_custom: boolean;
-  applies_to: string;
-  sort_order: number;
-}
-
 export interface NewProduct {
   product: string;
   batch: string;
@@ -54,14 +43,6 @@ const generateBarcode = () => {
   return `${timestamp}${random}`;
 };
 
-const fieldKeyToFormKey: Record<string, string> = {
-  product: "product", batch: "batch", location: "location", quantity: "quantity",
-  min_quantity: "minQuantity", unit: "unit", barcode: "barcode",
-  purchase_price: "purchasePrice", sale_price: "salePrice", plant_type: "plantType",
-  pot_size: "potSize", color: "color", shade: "shade", vbn_code: "vbnCode",
-  pieces_per_tray: "piecesPerTray", plant_height: "plantHeight", quality_group: "qualityGroup",
-};
-
 const defaultFormData: NewProduct = {
   product: "", batch: "", location: "", quantity: 0, minQuantity: 0, unit: "stuks",
   barcode: "", purchasePrice: 0, salePrice: 0, plantType: null, potSize: null,
@@ -74,47 +55,21 @@ interface AddProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (product: NewProduct) => void;
-  tenantId: string | null;
 }
 
-export function AddProductDialog({ open, onOpenChange, onAdd, tenantId }: AddProductDialogProps) {
+export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialogProps) {
   const [step, setStep] = useState<"type" | "form">("type");
   const [productCategory, setProductCategory] = useState<"levend" | "dood" | null>(null);
   const [formData, setFormData] = useState<NewProduct>({ ...defaultFormData });
-  const [fieldSettings, setFieldSettings] = useState<FieldSetting[]>([]);
-  const [fieldOptions, setFieldOptions] = useState<Record<string, string[]>>({});
   const [locations, setLocations] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!tenantId || !open) return;
+    if (!open) return;
     (async () => {
-      const [fieldsRes, locationsRes] = await Promise.all([
-        supabase.from("product_field_settings").select("*").eq("tenant_id", tenantId).eq("is_active", true).order("sort_order"),
-        supabase.from("locations").select("name").eq("tenant_id", tenantId).order("sort_order"),
-      ]);
-      if (fieldsRes.data) setFieldSettings(fieldsRes.data as unknown as FieldSetting[]);
-      if (locationsRes.data) setLocations(locationsRes.data.map((l: any) => l.name));
+      const { data } = await supabase.from("locations").select("name").order("sort_order");
+      if (data) setLocations(data.map((l) => l.name));
     })();
-  }, [tenantId, open]);
-
-  useEffect(() => {
-    if (!tenantId || fieldSettings.length === 0) return;
-    const selectFields = fieldSettings.filter((f) => f.field_type === "select");
-    if (selectFields.length === 0) return;
-    (async () => {
-      const { data } = await supabase
-        .from("product_field_options").select("field_setting_id, label").eq("tenant_id", tenantId)
-        .in("field_setting_id", selectFields.map((f) => f.id)).order("sort_order");
-      if (data) {
-        const optionsMap: Record<string, string[]> = {};
-        data.forEach((opt: any) => {
-          if (!optionsMap[opt.field_setting_id]) optionsMap[opt.field_setting_id] = [];
-          optionsMap[opt.field_setting_id].push(opt.label);
-        });
-        setFieldOptions(optionsMap);
-      }
-    })();
-  }, [tenantId, fieldSettings]);
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -138,45 +93,6 @@ export function AddProductDialog({ open, onOpenChange, onAdd, tenantId }: AddPro
 
   const regenerateBarcode = () => {
     setFormData((prev) => ({ ...prev, barcode: generateBarcode() }));
-  };
-
-  const activeFields = fieldSettings.filter((f) => {
-    if (!productCategory) return false;
-    return f.applies_to === "beide" || f.applies_to === productCategory;
-  });
-
-  const coreFieldKeys = ["product", "batch", "location", "quantity", "min_quantity", "unit", "barcode", "purchase_price", "sale_price"];
-  const excludedFieldKeys = ["product_type"];
-  const categoryFields = activeFields.filter((f) => !excludedFieldKeys.includes(f.field_key) && (f.is_custom || !coreFieldKeys.includes(f.field_key)));
-
-  const renderField = (field: FieldSetting) => {
-    const formKey = fieldKeyToFormKey[field.field_key] || field.field_key;
-    if (field.field_type === "select") {
-      const options = fieldOptions[field.id] || [];
-      return (
-        <div key={field.id} className="grid gap-2">
-          <Label>{field.field_label}</Label>
-          <Select value={formData[formKey] || ""} onValueChange={(value) => setFormData({ ...formData, [formKey]: value || null })}>
-            <SelectTrigger><SelectValue placeholder={`Kies ${field.field_label.toLowerCase()}`} /></SelectTrigger>
-            <SelectContent>{options.map((opt) => (<SelectItem key={opt} value={opt}>{opt}</SelectItem>))}</SelectContent>
-          </Select>
-        </div>
-      );
-    }
-    if (field.field_type === "number") {
-      return (
-        <div key={field.id} className="grid gap-2">
-          <Label>{field.field_label}</Label>
-          <Input type="number" min="0" value={formData[formKey] ?? ""} onChange={(e) => setFormData({ ...formData, [formKey]: e.target.value ? parseInt(e.target.value) : null })} />
-        </div>
-      );
-    }
-    return (
-      <div key={field.id} className="grid gap-2">
-        <Label>{field.field_label}</Label>
-        <Input value={formData[formKey] || ""} onChange={(e) => setFormData({ ...formData, [formKey]: e.target.value || null })} />
-      </div>
-    );
   };
 
   if (step === "type") {
@@ -218,12 +134,6 @@ export function AddProductDialog({ open, onOpenChange, onAdd, tenantId }: AddPro
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            {categoryFields.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-muted-foreground">{productCategory === "levend" ? "Plant eigenschappen" : "Product eigenschappen"}</Label>
-                <div className="grid grid-cols-2 gap-4">{categoryFields.map(renderField)}</div>
-              </div>
-            )}
             <div className="grid gap-2">
               <Label htmlFor="product">Productnaam *</Label>
               <Input id="product" placeholder={productCategory === "levend" ? "bijv. Rode Tulpen" : "bijv. Terracotta pot 12cm"} value={formData.product} onChange={(e) => setFormData({ ...formData, product: e.target.value })} required />
@@ -271,6 +181,26 @@ export function AddProductDialog({ open, onOpenChange, onAdd, tenantId }: AddPro
                 </Select>
               </div>
             </div>
+            {productCategory === "levend" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Potmaat</Label>
+                  <Input value={formData.potSize || ""} onChange={(e) => setFormData({ ...formData, potSize: e.target.value || null })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Kleur</Label>
+                  <Input value={formData.color || ""} onChange={(e) => setFormData({ ...formData, color: e.target.value || null })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Tint</Label>
+                  <Input value={formData.shade || ""} onChange={(e) => setFormData({ ...formData, shade: e.target.value || null })} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Planthoogte</Label>
+                  <Input value={formData.plantHeight || ""} onChange={(e) => setFormData({ ...formData, plantHeight: e.target.value || null })} />
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="purchasePrice">Inkoopprijs (€)</Label>
