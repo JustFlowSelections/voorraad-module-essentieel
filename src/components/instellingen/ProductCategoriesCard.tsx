@@ -6,6 +6,8 @@ import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { IconPicker, DynamicIcon } from "@/components/ui/icon-picker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AVAILABLE_COLORS, getCategoryColor } from "@/lib/categoryColors";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +24,7 @@ interface ProductCategory {
   name: string;
   slug: string;
   icon: string | null;
+  color: string;
   sort_order: number;
 }
 
@@ -34,6 +37,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState<string>("tag");
+  const [newColor, setNewColor] = useState<string>("blue");
   const [deleteTarget, setDeleteTarget] = useState<ProductCategory | null>(null);
   const [usageCount, setUsageCount] = useState(0);
   const [checkingUsage, setCheckingUsage] = useState(false);
@@ -60,6 +64,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
         name: newName.trim(),
         slug,
         icon: newIcon,
+        color: newColor,
         sort_order: categories.length,
       } as any);
       if (error) {
@@ -89,6 +94,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
       toast.success(`Categorie "${newName.trim()}" toegevoegd`);
       setNewName("");
       setNewIcon("tag");
+      setNewColor("blue");
       await fetchCategories();
       onCategoriesChanged?.();
     } catch {
@@ -150,7 +156,9 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
               {categories.map((cat) => (
                 <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div className="flex items-center gap-2">
-                    <DynamicIcon name={cat.icon} className="h-4 w-4 text-muted-foreground" />
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center ${getCategoryColor(cat.color).bg}`}>
+                      <DynamicIcon name={cat.icon} className={`h-3.5 w-3.5 ${getCategoryColor(cat.color).icon}`} />
+                    </div>
                     <span className="font-medium">{cat.name}</span>
                     <span className="text-xs text-muted-foreground">({cat.slug})</span>
                   </div>
