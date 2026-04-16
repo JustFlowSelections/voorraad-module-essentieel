@@ -74,6 +74,9 @@ const STANDARD_FIELD_MAP: Record<string, keyof NewProduct> = {
   sale_price: "salePrice",
 };
 
+// Core fields that get their own structured layout at the top
+const CORE_FIELD_KEYS = new Set(["product", "barcode", "batch", "location", "quantity", "min_quantity", "unit", "purchase_price", "sale_price"]);
+
 // Fields that need special UI rendering
 const SPECIAL_FIELDS = new Set(["location", "unit", "barcode"]);
 
@@ -317,9 +320,18 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-2 gap-4">
-              {deduped.map((field) => renderField(field))}
-            </div>
+            {/* Core fields - structured layout */}
+            {deduped.filter((f) => CORE_FIELD_KEYS.has(f.field_key)).map((field) => renderField(field))}
+
+            {/* Extra fields from settings */}
+            {deduped.filter((f) => !CORE_FIELD_KEYS.has(f.field_key)).length > 0 && (
+              <div className="space-y-3 pt-2">
+                <Label className="text-sm font-medium text-muted-foreground">Extra velden</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  {deduped.filter((f) => !CORE_FIELD_KEYS.has(f.field_key)).map((field) => renderField(field))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuleren</Button>
