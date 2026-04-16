@@ -169,31 +169,34 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
               ))}
             </div>
           )}
-          <div className="flex gap-2 items-center">
-            <IconPicker value={newIcon} onChange={setNewIcon} />
-            <Select value={newColor} onValueChange={setNewColor}>
-              <SelectTrigger className="w-[100px]">
-                <div className="flex items-center gap-2">
-                  <div className={`h-3 w-3 rounded-full ${getCategoryColor(newColor).dot}`} />
-                  <span className="capitalize text-xs">{newColor}</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {AVAILABLE_COLORS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${getCategoryColor(c).dot}`} />
-                      <span className="capitalize">{c}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input placeholder="Nieuwe categorie naam..." value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} className="flex-1" />
-            <Button variant="outline" onClick={handleAdd} disabled={!newName.trim()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Toevoegen
-            </Button>
+          <div className="space-y-2">
+            <Input placeholder="Nieuwe categorie naam..." value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} />
+            <div className="flex gap-2 items-center">
+              <IconPicker value={newIcon} onChange={setNewIcon} />
+              <Select value={newColor} onValueChange={setNewColor}>
+                <SelectTrigger className="w-[110px]">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-3 w-3 rounded-full ${getCategoryColor(newColor).dot}`} />
+                    <span className="capitalize text-xs">{newColor}</span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {AVAILABLE_COLORS.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      <div className="flex items-center gap-2">
+                        <div className={`h-3 w-3 rounded-full ${getCategoryColor(c).dot}`} />
+                        <span className="capitalize">{c}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex-1" />
+              <Button variant="outline" onClick={handleAdd} disabled={!newName.trim()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Toevoegen
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
