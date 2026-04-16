@@ -198,11 +198,7 @@ export function InventoryNavigationCard() {
                     </div>
                   </SortableContext>
                 </DndContext>
-              ) : (
-                <div className="text-center py-4 text-muted-foreground text-sm">
-                  Geen niveaus geselecteerd
-                </div>
-              )}
+              ) : null}
 
               <div className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 bg-muted/30">
                 <div className="w-4" />
