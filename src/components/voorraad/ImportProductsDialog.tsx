@@ -140,9 +140,20 @@ export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: I
     for (const row of validRows) {
       const { plant_type, pot_size, color, shade, vbn_code, pieces_per_tray, plant_height, quality_group, ...productRow } = row;
 
+      // Build custom_fields from plant detail columns
+      const customFields: Record<string, any> = {};
+      if (plant_type) customFields.plant_type = plant_type;
+      if (pot_size) customFields.pot_size = pot_size;
+      if (color) customFields.color = color;
+      if (shade) customFields.shade = shade;
+      if (vbn_code) customFields.vbn_code = vbn_code;
+      if (pieces_per_tray) customFields.pieces_per_tray = pieces_per_tray;
+      if (plant_height) customFields.plant_height = plant_height;
+      if (quality_group) customFields.quality_group = quality_group;
+
       const { data: productData, error: productError } = await supabase
         .from("products")
-        .insert([productRow])
+        .insert([{ ...productRow, custom_fields: customFields }] as any)
         .select("id")
         .single();
 
@@ -150,19 +161,6 @@ export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: I
         errors++;
         lastError = productError.message;
         continue;
-      }
-
-      const hasPlantDetails = plant_type || pot_size || color || shade || vbn_code || pieces_per_tray || plant_height || quality_group;
-      if (hasPlantDetails && productData) {
-        const { error: detailsError } = await supabase
-          .from("product_plant_details")
-          .insert([{
-            product_id: productData.id,
-            plant_type, pot_size, color, shade, vbn_code, pieces_per_tray, plant_height, quality_group,
-          }]);
-        if (detailsError) {
-          lastError = detailsError.message;
-        }
       }
 
       success++;

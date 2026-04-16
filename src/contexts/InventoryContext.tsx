@@ -67,7 +67,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         const to = from + PAGE_SIZE - 1;
         const { data, error } = await supabase
           .from("products")
-          .select("*, product_plant_details(*)")
+          .select("*")
           .order("product")
           .range(from, to);
 
@@ -84,7 +84,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
       const items: InventoryItem[] = allProducts.map((item) => {
         const available = item.quantity;
-        const details = item.product_plant_details?.[0] || item.product_plant_details || null;
+        const cf = (item.custom_fields as Record<string, any>) || {};
         return {
           id: item.id,
           product: item.product,
@@ -99,16 +99,16 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           barcode: item.barcode || "",
           purchasePrice: Number(item.purchase_price) || 0,
           salePrice: Number(item.sale_price) || 0,
-          plantType: details?.plant_type || null,
-          potSize: details?.pot_size || null,
-          color: details?.color || null,
-          shade: details?.shade || null,
-          fullColor: details?.full_color || null,
+          plantType: cf.plant_type || null,
+          potSize: cf.pot_size || null,
+          color: cf.color || null,
+          shade: cf.shade || null,
+          fullColor: cf.full_color || null,
           imageUrl: item.image_url || null,
-          vbnCode: details?.vbn_code || null,
-          piecesPerTray: details?.pieces_per_tray || null,
-          plantHeight: details?.plant_height || null,
-          qualityGroup: details?.quality_group || null,
+          vbnCode: cf.vbn_code || null,
+          piecesPerTray: cf.pieces_per_tray || null,
+          plantHeight: cf.plant_height || null,
+          qualityGroup: cf.quality_group || null,
           incomingQuantity: item.incoming_quantity || 0,
           economicQuantity: available + (item.incoming_quantity || 0),
           productType: (() => {
@@ -117,7 +117,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
             if (pt === "dood") return "dode voorraad";
             return pt;
           })(),
-          customFields: (item.custom_fields as Record<string, any>) || {},
+          customFields: cf,
         };
       });
 
@@ -137,7 +137,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   const addProduct = async (newProduct: NewProductInput) => {
     try {
-      const { data: productData, error: productError } = await supabase.from("products").insert({
+      const { error: productError } = await supabase.from("products").insert({
         product: newProduct.product,
         batch: newProduct.batch,
         location: newProduct.location,
@@ -150,29 +150,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         image_url: newProduct.imageUrl,
         product_type: newProduct.productType,
         custom_fields: newProduct.customFields || {},
-      } as any).select("id").single();
+      } as any);
 
       if (productError) throw productError;
-
-      const hasPlantDetails = newProduct.plantType || newProduct.potSize || newProduct.color ||
-        newProduct.shade || newProduct.fullColor || newProduct.vbnCode ||
-        newProduct.piecesPerTray || newProduct.plantHeight || newProduct.qualityGroup;
-
-      if (hasPlantDetails && productData) {
-        const { error: detailsError } = await supabase.from("product_plant_details").insert({
-          product_id: productData.id,
-          plant_type: newProduct.plantType,
-          pot_size: newProduct.potSize,
-          color: newProduct.color,
-          shade: newProduct.shade,
-          full_color: newProduct.fullColor,
-          vbn_code: newProduct.vbnCode,
-          pieces_per_tray: newProduct.piecesPerTray,
-          plant_height: newProduct.plantHeight,
-          quality_group: newProduct.qualityGroup,
-        });
-        if (detailsError) throw detailsError;
-      }
 
       await fetchInventory();
       toast.success("Product toegevoegd");
@@ -203,41 +183,6 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         .eq("id", updatedProduct.id);
 
       if (productError) throw productError;
-
-      const plantDetailsData = {
-        plant_type: updatedProduct.plantType,
-        pot_size: updatedProduct.potSize,
-        color: updatedProduct.color,
-        shade: updatedProduct.shade,
-        full_color: updatedProduct.fullColor,
-        vbn_code: updatedProduct.vbnCode,
-        pieces_per_tray: updatedProduct.piecesPerTray,
-        plant_height: updatedProduct.plantHeight,
-        quality_group: updatedProduct.qualityGroup,
-      };
-
-      const hasPlantDetails = Object.values(plantDetailsData).some(v => v !== null && v !== undefined);
-
-      if (hasPlantDetails) {
-        const { data: existing } = await supabase
-          .from("product_plant_details")
-          .select("id")
-          .eq("product_id", updatedProduct.id)
-          .maybeSingle();
-
-        if (existing) {
-          const { error } = await supabase
-            .from("product_plant_details")
-            .update(plantDetailsData)
-            .eq("product_id", updatedProduct.id);
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from("product_plant_details")
-            .insert({ ...plantDetailsData, product_id: updatedProduct.id });
-          if (error) throw error;
-        }
-      }
 
       await fetchInventory();
       toast.success("Product bijgewerkt");
