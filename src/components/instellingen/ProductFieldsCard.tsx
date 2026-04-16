@@ -175,10 +175,8 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
         field_key: fieldKey,
         field_label: newLabel.trim(),
         field_type: newType,
-        is_active: true,
         is_custom: true,
         sort_order: maxSort + 1,
-        applies_to: newAppliesTo,
         active_per_category: activePerCategory,
       } as any);
       if (error) throw error;
