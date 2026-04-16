@@ -31,6 +31,7 @@ interface FolderBrowserProps {
   viewMode?: "grid" | "list";
   hierarchyLevels?: HierarchyLevel[];
   visibleColumns?: ColumnKey[];
+  hierarchyLabels?: Record<string, string>;
 }
 
 interface FolderItem {
@@ -121,7 +122,9 @@ function getItemValue(item: InventoryItem, level: string): string | null {
   return null;
 }
 
-function getLevelLabel(level: HierarchyLevel | null): string {
+function getLevelLabel(level: HierarchyLevel | null, hierarchyLabels?: Record<string, string>): string {
+  if (!level) return "";
+  if (hierarchyLabels && hierarchyLabels[level]) return hierarchyLabels[level].toLowerCase();
   const labels: Record<string, string> = {
     potSize: "potmaat",
     color: "kleur",
@@ -133,10 +136,10 @@ function getLevelLabel(level: HierarchyLevel | null): string {
     productType: "producttype",
     fullColor: "volledige kleur",
   };
-  return level ? labels[level] || level : "";
+  return labels[level] || level;
 }
 
-export function FolderBrowser({ inventory, currentPath, onNavigate, onProductClick, viewMode = "grid", hierarchyLevels = ["potSize", "color", "shade"], visibleColumns = ["quantity", "minQuantity", "reservedQuantity", "availableQuantity", "incomingQuantity", "economicQuantity"] }: FolderBrowserProps) {
+export function FolderBrowser({ inventory, currentPath, onNavigate, onProductClick, viewMode = "grid", hierarchyLevels = ["potSize", "color", "shade"], visibleColumns = ["quantity", "minQuantity", "reservedQuantity", "availableQuantity", "incomingQuantity", "economicQuantity"], hierarchyLabels = {} }: FolderBrowserProps) {
   const allLevels: HierarchyLevel[] = ["root", ...hierarchyLevels];
   const currentLevel = currentPath[currentPath.length - 1]?.level || "root";
 
@@ -275,7 +278,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
       {products.length > 0 && (
         <div className="space-y-2">
           {folders.length > 0 && (
-            <h4 className="text-sm font-medium text-muted-foreground">Producten zonder {getLevelLabel(getNext(currentLevel))}</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">Producten zonder {getLevelLabel(getNext(currentLevel), hierarchyLabels)}</h4>
           )}
           <div className={viewMode === "list" ? "space-y-0" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"}>
             {viewMode === "list" && <ProductListHeader visibleColumns={visibleColumns} />}

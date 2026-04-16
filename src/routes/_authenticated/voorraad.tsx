@@ -42,17 +42,23 @@ function VoorraadPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>(["potSize", "color", "shade"]);
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(["quantity", "minQuantity", "reservedQuantity", "availableQuantity", "incomingQuantity", "economicQuantity"]);
+  const [hierarchyLabels, setHierarchyLabels] = useState<Record<string, string>>({});
 
   const { inventory, loading, addProduct, updateProduct, refreshInventory } = useInventory();
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("inventory_settings")
-        .select("hierarchy_levels, visible_columns")
-        .maybeSingle();
-      if (data?.hierarchy_levels) setHierarchyLevels(data.hierarchy_levels as HierarchyLevel[]);
-      if (data?.visible_columns) setVisibleColumns(data.visible_columns as ColumnKey[]);
+      const [settingsRes, fieldsRes] = await Promise.all([
+        supabase.from("inventory_settings").select("hierarchy_levels, visible_columns").maybeSingle(),
+        supabase.from("product_field_settings").select("field_key, field_label"),
+      ]);
+      if (settingsRes.data?.hierarchy_levels) setHierarchyLevels(settingsRes.data.hierarchy_levels as HierarchyLevel[]);
+      if (settingsRes.data?.visible_columns) setVisibleColumns(settingsRes.data.visible_columns as ColumnKey[]);
+      if (fieldsRes.data) {
+        const labels: Record<string, string> = {};
+        fieldsRes.data.forEach((f) => { labels[f.field_key] = f.field_label; });
+        setHierarchyLabels(labels);
+      }
     })();
   }, []);
 
@@ -164,7 +170,7 @@ function VoorraadPage() {
           {loading ? (
             <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
           ) : (
-            <FolderBrowser inventory={filteredInventory} currentPath={folderPath} onNavigate={setFolderPath} onProductClick={handleProductClick} viewMode={viewMode} hierarchyLevels={hierarchyLevels} visibleColumns={visibleColumns} />
+            <FolderBrowser inventory={filteredInventory} currentPath={folderPath} onNavigate={setFolderPath} onProductClick={handleProductClick} viewMode={viewMode} hierarchyLevels={hierarchyLevels} visibleColumns={visibleColumns} hierarchyLabels={hierarchyLabels} />
           )}
         </div>
 
