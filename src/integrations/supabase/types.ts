@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      bugs: {
+        Row: {
+          attachment_url: string | null
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory_settings: {
         Row: {
           created_at: string
@@ -59,6 +95,36 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          read: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
