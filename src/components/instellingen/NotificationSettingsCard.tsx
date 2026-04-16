@@ -44,7 +44,7 @@ export function NotificationSettingsCard() {
       if (!user) throw new Error("Niet ingelogd");
       const { error } = await supabase
         .from("profiles")
-        .update({ notification_preferences: newPrefs as unknown as Record<string, unknown> })
+        .update({ notification_preferences: newPrefs as any })
         .eq("id", user.id);
       if (error) throw error;
       toast.success("Notificatie-instelling opgeslagen");
