@@ -65,6 +65,15 @@ const EMPTY_MAPPING: ColumnMapping = {
   color: "", shade: "", vbnCode: "", piecesPerTray: "", plantHeight: "", qualityGroup: "", imageUrl: "",
 };
 
+interface MappedRow {
+  product: string; batch: string; location: string; quantity: number; min_quantity: number;
+  unit: string; barcode: string | null; purchase_price: number; sale_price: number;
+  image_url: string | null; product_type: string;
+  plant_type: string | null; pot_size: string | null; color: string | null; shade: string | null;
+  vbn_code: string | null; pieces_per_tray: number | null; plant_height: string | null;
+  quality_group: string | null;
+}
+
 export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: ImportProductsDialogProps) {
   const [step, setStep] = useState<"type" | "upload" | "map" | "preview" | "importing">("type");
   const [productType, setProductType] = useState<"levend" | "dood" | null>(null);
@@ -105,19 +114,19 @@ export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: I
   const handleDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); const file = e.dataTransfer.files[0]; if (file) handleFile(file); }, [handleFile]);
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) handleFile(file); };
 
-  const mappedRows = rows.map((row) => ({
+  const mappedRows: MappedRow[] = rows.map((row) => ({
     product: row[mapping.product] || "", batch: row[mapping.batch] || "", location: row[mapping.location] || "",
     quantity: parseInt(row[mapping.quantity]) || 0, min_quantity: parseInt(row[mapping.minQuantity]) || 0,
     unit: row[mapping.unit] || "stuks", barcode: row[mapping.barcode] || null,
     purchase_price: parseFloat(String(row[mapping.purchasePrice]).replace(",", ".")) || 0,
     sale_price: parseFloat(String(row[mapping.salePrice]).replace(",", ".")) || 0,
+    image_url: row[mapping.imageUrl] || null,
+    product_type: productType === "levend" ? "levende voorraad" : "dode voorraad",
     plant_type: row[mapping.plantType] || null, pot_size: row[mapping.potSize] || null,
     color: row[mapping.color] || null, shade: row[mapping.shade] || null,
     vbn_code: row[mapping.vbnCode] || null,
     pieces_per_tray: mapping.piecesPerTray ? (parseInt(row[mapping.piecesPerTray]) || null) : null,
     plant_height: row[mapping.plantHeight] || null, quality_group: row[mapping.qualityGroup] || null,
-    image_url: row[mapping.imageUrl] || null,
-    product_type: productType === "levend" ? "levende voorraad" : "dode voorraad",
   }));
 
   const validRows = mappedRows.filter((r) => r.product && r.batch && r.location);
@@ -127,17 +136,38 @@ export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: I
   const handleImport = async () => {
     setStep("importing");
     let success = 0; let errors = 0; let lastError = "";
-    for (let i = 0; i < validRows.length; i += 50) {
-      const batch = validRows.slice(i, i + 50);
-      const { error } = await supabase.from("products").insert(batch);
-      if (error) {
-        lastError = error.message;
-        for (const row of batch) {
-          const { error: rowError } = await supabase.from("products").insert([row]);
-          if (rowError) { errors++; lastError = rowError.message; } else { success++; }
+
+    for (const row of validRows) {
+      const { plant_type, pot_size, color, shade, vbn_code, pieces_per_tray, plant_height, quality_group, ...productRow } = row;
+
+      const { data: productData, error: productError } = await supabase
+        .from("products")
+        .insert([productRow])
+        .select("id")
+        .single();
+
+      if (productError) {
+        errors++;
+        lastError = productError.message;
+        continue;
+      }
+
+      const hasPlantDetails = plant_type || pot_size || color || shade || vbn_code || pieces_per_tray || plant_height || quality_group;
+      if (hasPlantDetails && productData) {
+        const { error: detailsError } = await supabase
+          .from("product_plant_details")
+          .insert([{
+            product_id: productData.id,
+            plant_type, pot_size, color, shade, vbn_code, pieces_per_tray, plant_height, quality_group,
+          }]);
+        if (detailsError) {
+          lastError = detailsError.message;
         }
-      } else { success += batch.length; }
+      }
+
+      success++;
     }
+
     setImportResult({ success, errors, lastError });
     if (success > 0) { toast.success(`${success} producten geïmporteerd`); onImportComplete(); }
     if (errors > 0) { toast.error(`${errors} producten konden niet worden geïmporteerd`); }
