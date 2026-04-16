@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { InventoryItem } from "@/contexts/InventoryContext";
 
-export type HierarchyLevel = "root" | "potSize" | "color" | "shade" | "plantType" | "plantHeight" | "qualityGroup" | "location" | "productType" | "fullColor";
+export type HierarchyLevel = string;
 
 export interface BreadcrumbItem {
   level: HierarchyLevel;
@@ -108,6 +108,19 @@ function ProductCard({ product, onClick, viewMode, visibleColumns }: { product: 
   );
 }
 
+/** Get the value of a hierarchy level from an inventory item, checking both direct props and customFields */
+function getItemValue(item: InventoryItem, level: string): string | null {
+  if (level in item) {
+    const val = item[level as keyof InventoryItem];
+    return val != null ? String(val) : null;
+  }
+  if (item.customFields && level in item.customFields) {
+    const val = item.customFields[level];
+    return val != null ? String(val) : null;
+  }
+  return null;
+}
+
 function getLevelLabel(level: HierarchyLevel | null): string {
   const labels: Record<string, string> = {
     potSize: "potmaat",
@@ -120,7 +133,7 @@ function getLevelLabel(level: HierarchyLevel | null): string {
     productType: "producttype",
     fullColor: "volledige kleur",
   };
-  return level ? labels[level] || "" : "";
+  return level ? labels[level] || level : "";
 }
 
 export function FolderBrowser({ inventory, currentPath, onNavigate, onProductClick, viewMode = "grid", hierarchyLevels = ["potSize", "color", "shade"], visibleColumns = ["quantity", "minQuantity", "reservedQuantity", "availableQuantity", "incomingQuantity", "economicQuantity"] }: FolderBrowserProps) {
@@ -131,7 +144,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
     return inventory.filter((item) => {
       for (const crumb of currentPath) {
         if (crumb.level === "root") continue;
-        const itemValue = item[crumb.level as keyof InventoryItem];
+        const itemValue = getItemValue(item, crumb.level);
         if (itemValue !== crumb.value) return false;
       }
       return true;
@@ -151,7 +164,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
     const folderMap = new Map<string, { count: number; hasLowStock: boolean }>();
 
     filteredInventory.forEach((item) => {
-      const value = item[nextLevel as keyof InventoryItem] as string | null;
+      const value = getItemValue(item, nextLevel);
       if (value) {
         const existing = folderMap.get(value) || { count: 0, hasLowStock: false };
         existing.count++;
@@ -171,7 +184,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
     const nextLevel = getNext(currentLevel);
     if (!nextLevel) return filteredInventory;
     return filteredInventory.filter((item) => {
-      const value = item[nextLevel as keyof InventoryItem];
+      const value = getItemValue(item, nextLevel);
       return !value;
     });
   }, [filteredInventory, currentLevel]);
