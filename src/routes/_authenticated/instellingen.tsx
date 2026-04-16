@@ -107,10 +107,10 @@ function InstellingenPage() {
           </Card>
 
           {/* Product Categories */}
-          <ProductCategoriesCard />
+          <ProductCategoriesCard onCategoriesChanged={() => setCategoryRefreshKey((k) => k + 1)} />
 
           {/* Product Fields */}
-          <ProductFieldsCard />
+          <ProductFieldsCard refreshKey={categoryRefreshKey} />
 
           {/* Locations */}
           <LocationsCard />
