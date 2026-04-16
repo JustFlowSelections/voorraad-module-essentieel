@@ -15,6 +15,7 @@ import { DynamicIcon } from "@/components/ui/icon-picker";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
+import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
 import { useProductFieldSettings, type FieldSetting } from "@/hooks/useProductFieldSettings";
 
 interface ImportProductsDialogProps {
@@ -28,9 +29,8 @@ interface ProductCategory {
   name: string;
   slug: string;
   icon: string | null;
+  color: string | null;
 }
-
-// Standard field keys that map directly to product table columns
 const STANDARD_FIELD_MAP: Record<string, string> = {
   product: "product",
   location: "location",
@@ -212,8 +212,8 @@ export function ImportProductsDialog({ open, onOpenChange, onImportComplete }: I
                   onClick={() => { setSelectedCategory(cat.slug); setStep("upload"); }}
                   className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group"
                 >
-                  <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20">
-                    <DynamicIcon name={cat.icon} className="h-7 w-7 text-primary" />
+                  <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${getCategoryBgClass(cat.color)}`}>
+                    <DynamicIcon name={cat.icon} className={`h-7 w-7 ${getCategoryIconClass(cat.color)}`} />
                   </div>
                   <div className="text-center">
                     <p className="font-semibold">{cat.name}</p>
