@@ -11,6 +11,23 @@ import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FieldOptionsDialog } from "./FieldOptionsDialog";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface FieldSetting {
   id: string;
@@ -29,19 +46,104 @@ interface ProductCategory {
   icon: string | null;
 }
 
+const REQUIRED_FIELD_KEYS = new Set(["product", "location"]);
+
+function SortableFieldItem({
+  field,
+  categorySlug,
+  onToggle,
+  onDelete,
+  onOpenOptions,
+}: {
+  field: FieldSetting;
+  categorySlug: string;
+  onToggle: (field: FieldSetting, categorySlug: string) => void;
+  onDelete: (field: FieldSetting) => void;
+  onOpenOptions: (field: FieldSetting) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: field.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const isActive = field.active_per_category?.[categorySlug] ?? false;
+  const isRequired = REQUIRED_FIELD_KEYS.has(field.field_key);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between rounded-lg border border-border p-3 bg-background"
+    >
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <button
+          type="button"
+          className="cursor-grab active:cursor-grabbing touch-none"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        </button>
+        <Switch
+          checked={isRequired ? true : isActive}
+          disabled={isRequired}
+          onCheckedChange={() => onToggle(field, categorySlug)}
+        />
+        <div className="min-w-0">
+          <p className="font-medium truncate">{field.field_label}</p>
+          {field.is_custom && (
+            <p className="text-xs text-muted-foreground">
+              Aangepast · {field.field_type === "number" ? "Nummer" : field.field_type === "select" ? "Keuzelijst" : "Tekst"}
+            </p>
+          )}
+        </div>
+      </div>
+      {field.is_custom && (
+        <div className="flex gap-1 ml-2">
+          {field.field_type === "select" && (
+            <Button variant="ghost" size="icon" onClick={() => onOpenOptions(field)} title="Keuzes beheren">
+              <List className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => onDelete(field)} className="text-destructive hover:text-destructive">
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FieldList({
   fields,
   categorySlug,
   onToggle,
   onDelete,
   onOpenOptions,
+  onReorder,
 }: {
   fields: FieldSetting[];
   categorySlug: string;
   onToggle: (field: FieldSetting, categorySlug: string) => void;
   onDelete: (field: FieldSetting) => void;
   onOpenOptions: (field: FieldSetting) => void;
+  onReorder: (activeId: string, overId: string) => void;
 }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   if (fields.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground text-sm">
@@ -50,50 +152,30 @@ function FieldList({
     );
   }
 
-  const REQUIRED_FIELD_KEYS = new Set(["product", "location"]);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      onReorder(active.id as string, over.id as string);
+    }
+  };
 
   return (
-    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-      {fields.map((field) => {
-        const isActive = field.active_per_category?.[categorySlug] ?? false;
-        const isRequired = REQUIRED_FIELD_KEYS.has(field.field_key);
-        return (
-          <div
-            key={field.id}
-            className="flex items-center justify-between rounded-lg border border-border p-3"
-          >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <Switch
-                checked={isRequired ? true : isActive}
-                disabled={isRequired}
-                onCheckedChange={() => onToggle(field, categorySlug)}
-              />
-              <div className="min-w-0">
-                <p className="font-medium truncate">{field.field_label}</p>
-                {field.is_custom && (
-                  <p className="text-xs text-muted-foreground">
-                    Aangepast · {field.field_type === "number" ? "Nummer" : field.field_type === "select" ? "Keuzelijst" : "Tekst"}
-                  </p>
-                )}
-              </div>
-            </div>
-            {field.is_custom && (
-              <div className="flex gap-1 ml-2">
-                {field.field_type === "select" && (
-                  <Button variant="ghost" size="icon" onClick={() => onOpenOptions(field)} title="Keuzes beheren">
-                    <List className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" onClick={() => onDelete(field)} className="text-destructive hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+          {fields.map((field) => (
+            <SortableFieldItem
+              key={field.id}
+              field={field}
+              categorySlug={categorySlug}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onOpenOptions={onOpenOptions}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 }
 
@@ -120,7 +202,6 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
       if (catsRes.error) throw catsRes.error;
 
       const rawFields = (fieldsRes.data || []) as unknown as FieldSetting[];
-      // Ensure active_per_category is always an object
       const normalized = rawFields.map((f) => ({
         ...f,
         active_per_category: (f.active_per_category && typeof f.active_per_category === "object") ? f.active_per_category : {},
@@ -144,7 +225,6 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
     const newActive = !currentActive;
     const newPerCategory = { ...field.active_per_category, [categorySlug]: newActive };
 
-    // Optimistic update
     setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, active_per_category: newPerCategory } : f)));
 
     const { error } = await supabase
@@ -153,9 +233,42 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
       .eq("id", field.id);
 
     if (error) {
-      // Revert
       setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, active_per_category: field.active_per_category } : f)));
       toast.error("Fout bij bijwerken van veld");
+    }
+  };
+
+  const handleReorder = async (activeId: string, overId: string) => {
+    const oldIndex = fields.findIndex((f) => f.id === activeId);
+    const newIndex = fields.findIndex((f) => f.id === overId);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(fields, oldIndex, newIndex);
+    // Assign new sort_order values
+    const updated = reordered.map((f, i) => ({ ...f, sort_order: i }));
+    setFields(updated);
+
+    // Persist all changed sort_orders
+    try {
+      const updates = updated
+        .filter((f, i) => fields[i]?.id !== f.id) // only changed positions
+        .map((f) =>
+          supabase
+            .from("product_field_settings")
+            .update({ sort_order: f.sort_order, updated_at: new Date().toISOString() } as any)
+            .eq("id", f.id)
+        );
+      // Actually update all items to be safe
+      const allUpdates = updated.map((f) =>
+        supabase
+          .from("product_field_settings")
+          .update({ sort_order: f.sort_order, updated_at: new Date().toISOString() } as any)
+          .eq("id", f.id)
+      );
+      await Promise.all(allUpdates);
+    } catch (error) {
+      toast.error("Fout bij opslaan van volgorde");
+      await fetchData(); // revert
     }
   };
 
@@ -164,7 +277,6 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
     const fieldKey = `custom_${Date.now()}`;
     const maxSort = fields.reduce((max, f) => Math.max(max, f.sort_order), 0);
 
-    // Build active_per_category: active for selected categories
     const activePerCategory: Record<string, boolean> = {};
     for (const cat of categories) {
       if (newAppliesTo === "beide" || newAppliesTo === cat.slug) {
@@ -249,6 +361,7 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
                       onToggle={handleToggle}
                       onDelete={handleDeleteField}
                       onOpenOptions={handleOpenOptions}
+                      onReorder={handleReorder}
                     />
                   </TabsContent>
                 ))}
