@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { IconPicker, DynamicIcon } from "@/components/ui/icon-picker";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +22,7 @@ interface ProductCategory {
   id: string;
   name: string;
   slug: string;
+  icon: string | null;
   sort_order: number;
 }
 
@@ -31,6 +34,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
+  const [newIcon, setNewIcon] = useState<string>("tag");
   const [deleteTarget, setDeleteTarget] = useState<ProductCategory | null>(null);
   const [usageCount, setUsageCount] = useState(0);
   const [checkingUsage, setCheckingUsage] = useState(false);
