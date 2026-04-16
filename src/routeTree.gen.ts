@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVoorraadRouteImport } from './routes/_authenticated/voorraad'
+import { Route as AuthenticatedInstellingenRouteImport } from './routes/_authenticated/instellingen'
 
 const ResetWachtwoordRoute = ResetWachtwoordRouteImport.update({
   id: '/reset-wachtwoord',
@@ -39,17 +40,25 @@ const AuthenticatedVoorraadRoute = AuthenticatedVoorraadRouteImport.update({
   path: '/voorraad',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInstellingenRoute =
+  AuthenticatedInstellingenRouteImport.update({
+    id: '/instellingen',
+    path: '/instellingen',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/reset-wachtwoord': typeof ResetWachtwoordRoute
+  '/instellingen': typeof AuthenticatedInstellingenRoute
   '/voorraad': typeof AuthenticatedVoorraadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/reset-wachtwoord': typeof ResetWachtwoordRoute
+  '/instellingen': typeof AuthenticatedInstellingenRoute
   '/voorraad': typeof AuthenticatedVoorraadRoute
 }
 export interface FileRoutesById {
@@ -58,19 +67,26 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/reset-wachtwoord': typeof ResetWachtwoordRoute
+  '/_authenticated/instellingen': typeof AuthenticatedInstellingenRoute
   '/_authenticated/voorraad': typeof AuthenticatedVoorraadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/reset-wachtwoord' | '/voorraad'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/reset-wachtwoord'
+    | '/instellingen'
+    | '/voorraad'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/reset-wachtwoord' | '/voorraad'
+  to: '/' | '/login' | '/reset-wachtwoord' | '/instellingen' | '/voorraad'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/login'
     | '/reset-wachtwoord'
+    | '/_authenticated/instellingen'
     | '/_authenticated/voorraad'
   fileRoutesById: FileRoutesById
 }
@@ -118,14 +134,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVoorraadRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/instellingen': {
+      id: '/_authenticated/instellingen'
+      path: '/instellingen'
+      fullPath: '/instellingen'
+      preLoaderRoute: typeof AuthenticatedInstellingenRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedInstellingenRoute: typeof AuthenticatedInstellingenRoute
   AuthenticatedVoorraadRoute: typeof AuthenticatedVoorraadRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedInstellingenRoute: AuthenticatedInstellingenRoute,
   AuthenticatedVoorraadRoute: AuthenticatedVoorraadRoute,
 }
 
