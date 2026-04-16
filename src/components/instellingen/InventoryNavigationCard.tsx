@@ -225,7 +225,7 @@ export function InventoryNavigationCard() {
               </div>
             )}
 
-            <Button className="w-full" onClick={handleSave} disabled={saving || levels.length === 0}>
+            <Button className="w-full" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Opslaan
             </Button>
