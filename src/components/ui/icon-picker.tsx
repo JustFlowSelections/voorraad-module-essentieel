@@ -90,7 +90,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
       </PopoverTrigger>
       <PopoverContent className="w-[320px] p-3" align="start">
         <p className="text-xs text-muted-foreground mb-2 font-medium">Kies een icoon</p>
-        <div className="grid grid-cols-8 gap-1 max-h-[240px] overflow-y-auto">
+        <div className="grid grid-cols-8 gap-1">
           {Object.entries(ICON_MAP).map(([name, Icon]) => (
             <button
               key={name}
