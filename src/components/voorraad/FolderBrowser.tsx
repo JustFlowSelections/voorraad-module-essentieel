@@ -144,7 +144,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
     return inventory.filter((item) => {
       for (const crumb of currentPath) {
         if (crumb.level === "root") continue;
-        const itemValue = item[crumb.level as keyof InventoryItem];
+        const itemValue = getItemValue(item, crumb.level);
         if (itemValue !== crumb.value) return false;
       }
       return true;
@@ -164,7 +164,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
     const folderMap = new Map<string, { count: number; hasLowStock: boolean }>();
 
     filteredInventory.forEach((item) => {
-      const value = item[nextLevel as keyof InventoryItem] as string | null;
+      const value = getItemValue(item, nextLevel);
       if (value) {
         const existing = folderMap.get(value) || { count: 0, hasLowStock: false };
         existing.count++;
@@ -184,7 +184,7 @@ export function FolderBrowser({ inventory, currentPath, onNavigate, onProductCli
     const nextLevel = getNext(currentLevel);
     if (!nextLevel) return filteredInventory;
     return filteredInventory.filter((item) => {
-      const value = item[nextLevel as keyof InventoryItem];
+      const value = getItemValue(item, nextLevel);
       return !value;
     });
   }, [filteredInventory, currentLevel]);
