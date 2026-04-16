@@ -6,7 +6,6 @@ import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { IconPicker, DynamicIcon } from "@/components/ui/icon-picker";
-import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
