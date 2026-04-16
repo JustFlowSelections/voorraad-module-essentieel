@@ -5,6 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProductCategory {
   id: string;
@@ -13,10 +23,17 @@ interface ProductCategory {
   sort_order: number;
 }
 
-export function ProductCategoriesCard() {
+interface Props {
+  onCategoriesChanged?: () => void;
+}
+
+export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ProductCategory | null>(null);
+  const [usageCount, setUsageCount] = useState(0);
+  const [checkingUsage, setCheckingUsage] = useState(false);
 
   const fetchCategories = async () => {
     try {
@@ -49,62 +66,115 @@ export function ProductCategoriesCard() {
       toast.success(`Categorie "${newName.trim()}" toegevoegd`);
       setNewName("");
       await fetchCategories();
+      onCategoriesChanged?.();
     } catch {
       toast.error("Fout bij toevoegen van categorie");
     }
   };
 
-  const handleDelete = async (cat: ProductCategory) => {
-    if (!confirm(`Weet u zeker dat u "${cat.name}" wilt verwijderen?`)) return;
+  const handleDeleteClick = async (cat: ProductCategory) => {
+    setCheckingUsage(true);
+    setDeleteTarget(cat);
     try {
-      const { error } = await supabase.from("product_categories").delete().eq("id", cat.id);
+      // Check how many products use this category slug as product_type
+      const { count, error } = await supabase
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("product_type", cat.slug);
       if (error) throw error;
-      toast.success(`Categorie "${cat.name}" verwijderd`);
+      setUsageCount(count || 0);
+    } catch {
+      setUsageCount(0);
+    } finally {
+      setCheckingUsage(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      const { error } = await supabase.from("product_categories").delete().eq("id", deleteTarget.id);
+      if (error) throw error;
+      toast.success(`Categorie "${deleteTarget.name}" verwijderd`);
+      setDeleteTarget(null);
       await fetchCategories();
+      onCategoriesChanged?.();
     } catch {
       toast.error("Fout bij verwijderen van categorie");
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Tags className="h-5 w-5 text-primary" />
-          <CardTitle>Productcategorieën</CardTitle>
-        </div>
-        <CardDescription>Beheer de typen voorraad (bijv. Levend, Dood)</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Tags className="h-5 w-5 text-primary" />
+            <CardTitle>Productcategorieën</CardTitle>
           </div>
-        ) : categories.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">Geen categorieën gevonden</div>
-        ) : (
-          <div className="space-y-3 max-h-[280px] overflow-y-auto">
-            {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <div>
-                  <span className="font-medium">{cat.name}</span>
-                  <span className="text-xs text-muted-foreground ml-2">({cat.slug})</span>
+          <CardDescription>Beheer de typen voorraad (bijv. Levend, Dood)</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">Geen categorieën gevonden</div>
+          ) : (
+            <div className="space-y-3 max-h-[280px] overflow-y-auto">
+              {categories.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div>
+                    <span className="font-medium">{cat.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">({cat.slug})</span>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(cat)} className="text-destructive hover:text-destructive" title="Verwijderen">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(cat)} className="text-destructive hover:text-destructive" title="Verwijderen">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Input placeholder="Nieuwe categorie naam..." value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} />
+            <Button variant="outline" onClick={handleAdd} disabled={!newName.trim()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Toevoegen
+            </Button>
           </div>
-        )}
-        <div className="flex gap-2">
-          <Input placeholder="Nieuwe categorie naam..." value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} />
-          <Button variant="outline" onClick={handleAdd} disabled={!newName.trim()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Toevoegen
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Categorie verwijderen</AlertDialogTitle>
+            <AlertDialogDescription>
+              {checkingUsage ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Gebruik controleren...
+                </span>
+              ) : usageCount > 0 ? (
+                <>
+                  <span className="font-semibold text-destructive">Let op:</span> De categorie "{deleteTarget?.name}" wordt momenteel gebruikt door{" "}
+                  <span className="font-semibold">{usageCount} product{usageCount !== 1 ? "en" : ""}</span> in de voorraad.
+                  <br /><br />
+                  Weet u zeker dat u deze categorie wilt verwijderen? De producten behouden hun huidige type, maar de categorie zal niet meer beschikbaar zijn.
+                </>
+              ) : (
+                <>Weet u zeker dat u de categorie "{deleteTarget?.name}" wilt verwijderen?</>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={checkingUsage} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

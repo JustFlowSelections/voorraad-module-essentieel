@@ -24,6 +24,7 @@ function InstellingenPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [categoryRefreshKey, setCategoryRefreshKey] = useState(0);
 
   const handleUpdateProfile = async () => {
     setSaving(true);
