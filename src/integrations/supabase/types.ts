@@ -126,6 +126,7 @@ export type Database = {
       }
       product_field_settings: {
         Row: {
+          active_per_category: Json
           applies_to: string
           created_at: string
           field_key: string
@@ -138,6 +139,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active_per_category?: Json
           applies_to?: string
           created_at?: string
           field_key: string
@@ -150,6 +152,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active_per_category?: Json
           applies_to?: string
           created_at?: string
           field_key?: string

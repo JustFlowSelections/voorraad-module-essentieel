@@ -21,6 +21,7 @@ export interface FieldSetting {
   is_custom: boolean;
   sort_order: number;
   applies_to: string;
+  active_per_category: Record<string, boolean>;
 }
 
 interface ProductCategory {
@@ -32,12 +33,14 @@ interface ProductCategory {
 
 function FieldList({
   fields,
+  categorySlug,
   onToggle,
   onDelete,
   onOpenOptions,
 }: {
   fields: FieldSetting[];
-  onToggle: (field: FieldSetting) => void;
+  categorySlug: string;
+  onToggle: (field: FieldSetting, categorySlug: string) => void;
   onDelete: (field: FieldSetting) => void;
   onOpenOptions: (field: FieldSetting) => void;
 }) {
@@ -51,40 +54,43 @@ function FieldList({
 
   return (
     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-      {fields.map((field) => (
-        <div
-          key={field.id}
-          className="flex items-center justify-between rounded-lg border border-border p-3"
-        >
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <Switch
-              checked={field.is_active}
-              onCheckedChange={() => onToggle(field)}
-            />
-            <div className="min-w-0">
-              <p className="font-medium truncate">{field.field_label}</p>
-              {field.is_custom && (
-                <p className="text-xs text-muted-foreground">
-                  Aangepast · {field.field_type === "number" ? "Nummer" : field.field_type === "select" ? "Keuzelijst" : "Tekst"}
-                </p>
-              )}
+      {fields.map((field) => {
+        const isActive = field.active_per_category?.[categorySlug] ?? field.is_active;
+        return (
+          <div
+            key={field.id}
+            className="flex items-center justify-between rounded-lg border border-border p-3"
+          >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <Switch
+                checked={isActive}
+                onCheckedChange={() => onToggle(field, categorySlug)}
+              />
+              <div className="min-w-0">
+                <p className="font-medium truncate">{field.field_label}</p>
+                {field.is_custom && (
+                  <p className="text-xs text-muted-foreground">
+                    Aangepast · {field.field_type === "number" ? "Nummer" : field.field_type === "select" ? "Keuzelijst" : "Tekst"}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          {field.is_custom && (
-            <div className="flex gap-1 ml-2">
-              {field.field_type === "select" && (
-                <Button variant="ghost" size="icon" onClick={() => onOpenOptions(field)} title="Keuzes beheren">
-                  <List className="h-4 w-4" />
+            {field.is_custom && (
+              <div className="flex gap-1 ml-2">
+                {field.field_type === "select" && (
+                  <Button variant="ghost" size="icon" onClick={() => onOpenOptions(field)} title="Keuzes beheren">
+                    <List className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button variant="ghost" size="icon" onClick={() => onDelete(field)} className="text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
                 </Button>
-              )}
-              <Button variant="ghost" size="icon" onClick={() => onDelete(field)} className="text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -111,7 +117,13 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
       if (fieldsRes.error) throw fieldsRes.error;
       if (catsRes.error) throw catsRes.error;
 
-      setFields((fieldsRes.data as unknown as FieldSetting[]) || []);
+      const rawFields = (fieldsRes.data || []) as unknown as FieldSetting[];
+      // Ensure active_per_category is always an object
+      const normalized = rawFields.map((f) => ({
+        ...f,
+        active_per_category: (f.active_per_category && typeof f.active_per_category === "object") ? f.active_per_category : {},
+      }));
+      setFields(normalized);
       const cats = (catsRes.data as unknown as ProductCategory[]) || [];
       setCategories(cats);
       if (cats.length > 0 && !activeTab) setActiveTab(cats[0].slug);
@@ -125,15 +137,22 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
 
   useEffect(() => { fetchData(); }, [refreshKey]);
 
-  const handleToggle = async (field: FieldSetting) => {
-    const newActive = !field.is_active;
-    setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, is_active: newActive } : f)));
+  const handleToggle = async (field: FieldSetting, categorySlug: string) => {
+    const currentActive = field.active_per_category?.[categorySlug] ?? field.is_active;
+    const newActive = !currentActive;
+    const newPerCategory = { ...field.active_per_category, [categorySlug]: newActive };
+
+    // Optimistic update
+    setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, active_per_category: newPerCategory } : f)));
+
     const { error } = await supabase
       .from("product_field_settings")
-      .update({ is_active: newActive, updated_at: new Date().toISOString() } as any)
+      .update({ active_per_category: newPerCategory, updated_at: new Date().toISOString() } as any)
       .eq("id", field.id);
+
     if (error) {
-      setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, is_active: !newActive } : f)));
+      // Revert
+      setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, active_per_category: field.active_per_category } : f)));
       toast.error("Fout bij bijwerken van veld");
     }
   };
@@ -142,6 +161,17 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
     if (!newLabel.trim()) return;
     const fieldKey = `custom_${Date.now()}`;
     const maxSort = fields.reduce((max, f) => Math.max(max, f.sort_order), 0);
+
+    // Build active_per_category: active for selected categories
+    const activePerCategory: Record<string, boolean> = {};
+    for (const cat of categories) {
+      if (newAppliesTo === "beide" || newAppliesTo === cat.slug) {
+        activePerCategory[cat.slug] = true;
+      } else {
+        activePerCategory[cat.slug] = false;
+      }
+    }
+
     try {
       const { error } = await supabase.from("product_field_settings").insert({
         field_key: fieldKey,
@@ -151,6 +181,7 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
         is_custom: true,
         sort_order: maxSort + 1,
         applies_to: newAppliesTo,
+        active_per_category: activePerCategory,
       } as any);
       if (error) throw error;
       toast.success(`Veld "${newLabel.trim()}" toegevoegd`);
@@ -181,8 +212,14 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
     setOptionsDialogOpen(true);
   };
 
+  // Show all fields that have this category in their active_per_category, or fallback to applies_to
   const getFieldsForTab = (slug: string) =>
-    fields.filter((f) => f.applies_to === slug || f.applies_to === "beide");
+    fields.filter((f) => {
+      // If active_per_category has an entry for this slug, show the field in this tab
+      if (f.active_per_category && slug in f.active_per_category) return true;
+      // Fallback: legacy applies_to logic
+      return f.applies_to === slug || f.applies_to === "beide";
+    });
 
   return (
     <Card>
@@ -214,6 +251,7 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
                   <TabsContent key={cat.slug} value={cat.slug} className="mt-4 space-y-4">
                     <FieldList
                       fields={getFieldsForTab(cat.slug)}
+                      categorySlug={cat.slug}
                       onToggle={handleToggle}
                       onDelete={handleDeleteField}
                       onOpenOptions={handleOpenOptions}

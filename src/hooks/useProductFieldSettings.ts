@@ -10,6 +10,7 @@ export interface FieldSetting {
   is_custom: boolean;
   sort_order: number;
   applies_to: string;
+  active_per_category: Record<string, boolean>;
   options?: { id: string; label: string; sort_order: number }[];
 }
 
@@ -24,20 +25,28 @@ export function useProductFieldSettings(categorySlug?: string | null) {
         const { data, error } = await supabase
           .from("product_field_settings")
           .select("*")
-          .eq("is_active", true)
           .order("sort_order");
 
         if (error) throw error;
 
-        let filtered = (data || []) as unknown as FieldSetting[];
+        let allFields = (data || []) as unknown as FieldSetting[];
+
+        // Filter by category: use active_per_category if available, fallback to applies_to + is_active
         if (categorySlug) {
-          filtered = filtered.filter(
-            (f) => f.applies_to === categorySlug || f.applies_to === "beide"
-          );
+          allFields = allFields.filter((f) => {
+            const perCat = f.active_per_category;
+            if (perCat && typeof perCat === "object" && categorySlug in perCat) {
+              return perCat[categorySlug] === true;
+            }
+            // Fallback: legacy logic
+            return f.is_active && (f.applies_to === categorySlug || f.applies_to === "beide");
+          });
+        } else {
+          allFields = allFields.filter((f) => f.is_active);
         }
 
         // Fetch options for select fields
-        const selectFields = filtered.filter((f) => f.field_type === "select");
+        const selectFields = allFields.filter((f) => f.field_type === "select");
         if (selectFields.length > 0) {
           const { data: options } = await supabase
             .from("product_field_options")
@@ -52,14 +61,14 @@ export function useProductFieldSettings(categorySlug?: string | null) {
               list.push(opt);
               optionsMap.set(opt.field_setting_id, list);
             }
-            filtered = filtered.map((f) => ({
+            allFields = allFields.map((f) => ({
               ...f,
               options: optionsMap.get(f.id) || [],
             }));
           }
         }
 
-        setFields(filtered);
+        setFields(allFields);
       } catch (error) {
         console.error("Error fetching field settings:", error);
       } finally {
