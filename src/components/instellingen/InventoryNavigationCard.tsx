@@ -6,18 +6,6 @@ import { FolderTree, GripVertical, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const DEFAULT_LEVELS = [
-  { key: "potSize", label: "Potmaat" },
-  { key: "color", label: "Kleur" },
-  { key: "shade", label: "Tint" },
-  { key: "plantType", label: "Planttype" },
-  { key: "plantHeight", label: "Planthoogte" },
-  { key: "qualityGroup", label: "Kwaliteitsgroep" },
-  { key: "location", label: "Locatie" },
-  { key: "productType", label: "Producttype" },
-  { key: "fullColor", label: "Volledige kleur" },
-];
-
 type LevelOption = { key: string; label: string };
 
 export function InventoryNavigationCard() {
@@ -25,26 +13,36 @@ export function InventoryNavigationCard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [availableLevels, setAvailableLevels] = useState<LevelOption[]>(DEFAULT_LEVELS);
+  const [availableLevels, setAvailableLevels] = useState<LevelOption[]>([]);
 
   useEffect(() => {
     (async () => {
       try {
         const [settingsRes, fieldsRes] = await Promise.all([
           supabase.from("inventory_settings").select("hierarchy_levels").maybeSingle(),
-          supabase.from("product_field_settings").select("field_key, field_label").eq("is_custom", true),
+          supabase.from("product_field_settings").select("field_key, field_label").order("sort_order"),
         ]);
 
         if (settingsRes.data?.hierarchy_levels) {
           setLevels(settingsRes.data.hierarchy_levels as string[]);
         }
 
-        const customLevels: LevelOption[] = (fieldsRes.data ?? []).map((f: any) => ({
+        // Build available levels from all field settings + always include productType & location
+        const fieldsFromDb: LevelOption[] = (fieldsRes.data ?? []).map((f: any) => ({
           key: f.field_key,
           label: f.field_label,
         }));
-        const defaultKeys = new Set(DEFAULT_LEVELS.map((l) => l.key));
-        setAvailableLevels([...DEFAULT_LEVELS, ...customLevels.filter((c) => !defaultKeys.has(c.key))]);
+        const keys = new Set(fieldsFromDb.map((f) => f.key));
+        const extras: LevelOption[] = [];
+        if (!keys.has("productType")) extras.push({ key: "productType", label: "Producttype" });
+        if (!keys.has("location")) extras.push({ key: "location", label: "Locatie" });
+
+        // Deduplicate by key
+        const all = [...fieldsFromDb, ...extras];
+        const seen = new Set<string>();
+        const deduped = all.filter((l) => { if (seen.has(l.key)) return false; seen.add(l.key); return true; });
+
+        setAvailableLevels(deduped);
       } catch (e) {
         console.error("Error fetching hierarchy:", e);
       } finally {
