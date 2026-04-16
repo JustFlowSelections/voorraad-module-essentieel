@@ -1,0 +1,141 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Header } from "@/components/layout/Header";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/instellingen")({
+  component: InstellingenPage,
+});
+
+function InstellingenPage() {
+  const [displayName, setDisplayName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (data?.display_name) setDisplayName(data.display_name);
+    })();
+  }, []);
+
+  const handleUpdateProfile = async () => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Niet ingelogd");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ display_name: displayName.trim() })
+        .eq("id", user.id);
+      if (error) throw error;
+      toast.success("Profiel bijgewerkt");
+    } catch {
+      toast.error("Fout bij het bijwerken van profiel");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error("Wachtwoord moet minimaal 6 tekens bevatten");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Wachtwoorden komen niet overeen");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Wachtwoord bijgewerkt");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      toast.error("Fout bij het wijzigen van wachtwoord");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  return (
+    <>
+      <Header title="Instellingen" />
+      <main className="p-6 space-y-6 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profielgegevens</CardTitle>
+            <CardDescription>Werk je persoonlijke gegevens bij</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Weergavenaam</Label>
+              <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={100} placeholder="Je naam" />
+            </div>
+            <Button onClick={handleUpdateProfile} disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Opslaan
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Wachtwoord wijzigen</CardTitle>
+            <CardDescription>Kies een nieuw wachtwoord</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Nieuw wachtwoord</Label>
+              <Input id="newPassword" type="password" value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)} maxLength={128} placeholder="••••••••" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Bevestig wachtwoord</Label>
+              <Input id="confirmPassword" type="password" value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)} maxLength={128} placeholder="••••••••" />
+            </div>
+            <Button onClick={handleChangePassword} disabled={changingPassword}>
+              {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Wachtwoord wijzigen
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notificatievoorkeuren</CardTitle>
+            <CardDescription>Beheer je notificatie-instellingen</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">E-mailnotificaties</p>
+                <p className="text-xs text-muted-foreground">Ontvang meldingen per e-mail</p>
+              </div>
+              <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </>
+  );
+}
