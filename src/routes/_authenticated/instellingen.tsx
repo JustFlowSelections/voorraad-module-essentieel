@@ -24,6 +24,7 @@ function InstellingenPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [categoryRefreshKey, setCategoryRefreshKey] = useState(0);
 
   const handleUpdateProfile = async () => {
     setSaving(true);
@@ -106,10 +107,10 @@ function InstellingenPage() {
           </Card>
 
           {/* Product Categories */}
-          <ProductCategoriesCard />
+          <ProductCategoriesCard onCategoriesChanged={() => setCategoryRefreshKey((k) => k + 1)} />
 
           {/* Product Fields */}
-          <ProductFieldsCard />
+          <ProductFieldsCard refreshKey={categoryRefreshKey} />
 
           {/* Locations */}
           <LocationsCard />
