@@ -121,7 +121,7 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [refreshKey]);
 
   const handleToggle = async (field: FieldSetting) => {
     const newActive = !field.is_active;
