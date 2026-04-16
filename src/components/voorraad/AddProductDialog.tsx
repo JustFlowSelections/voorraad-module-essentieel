@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Leaf, Box, ArrowLeft, Loader2, Tag } from "lucide-react";
+import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
+import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
 
@@ -58,11 +59,6 @@ const defaultFormData: NewProduct = {
   color: null, shade: null, vbnCode: null, piecesPerTray: null, plantHeight: null,
   qualityGroup: null, productType: "", imageUrl: null, fullColor: null,
   incomingQuantity: 0, economicQuantity: 0, customFields: {},
-};
-
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  levend: <Leaf className="h-7 w-7 text-emerald-600" />,
-  dood: <Box className="h-7 w-7 text-amber-600" />,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -152,7 +148,6 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
           ) : (
             <div className={`grid gap-4 py-6 ${categories.length === 1 ? "grid-cols-1 max-w-[200px] mx-auto" : categories.length === 2 ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-3"}`}>
               {categories.map((cat) => {
-                const icon = CATEGORY_ICONS[cat.slug] || <Tag className="h-7 w-7 text-primary" />;
                 const colorClass = CATEGORY_COLORS[cat.slug] || "bg-primary/10 group-hover:bg-primary/20";
                 return (
                   <button
@@ -161,7 +156,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
                     className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group"
                   >
                     <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${colorClass}`}>
-                      {icon}
+                      <DynamicIcon name={cat.icon} className="h-7 w-7" />
                     </div>
                     <div className="text-center">
                       <p className="font-semibold">{cat.name}</p>

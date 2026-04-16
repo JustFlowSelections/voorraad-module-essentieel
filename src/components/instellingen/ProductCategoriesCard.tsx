@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { IconPicker, DynamicIcon } from "@/components/ui/icon-picker";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ interface ProductCategory {
   id: string;
   name: string;
   slug: string;
+  icon: string | null;
   sort_order: number;
 }
 
@@ -31,6 +33,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
+  const [newIcon, setNewIcon] = useState<string>("tag");
   const [deleteTarget, setDeleteTarget] = useState<ProductCategory | null>(null);
   const [usageCount, setUsageCount] = useState(0);
   const [checkingUsage, setCheckingUsage] = useState(false);
@@ -56,6 +59,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
       const { error } = await supabase.from("product_categories").insert({
         name: newName.trim(),
         slug,
+        icon: newIcon,
         sort_order: categories.length,
       } as any);
       if (error) {
@@ -65,6 +69,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
       }
       toast.success(`Categorie "${newName.trim()}" toegevoegd`);
       setNewName("");
+      setNewIcon("tag");
       await fetchCategories();
       onCategoriesChanged?.();
     } catch {
@@ -125,9 +130,10 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
             <div className="space-y-3 max-h-[280px] overflow-y-auto">
               {categories.map((cat) => (
                 <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                  <div>
+                  <div className="flex items-center gap-2">
+                    <DynamicIcon name={cat.icon} className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{cat.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({cat.slug})</span>
+                    <span className="text-xs text-muted-foreground">({cat.slug})</span>
                   </div>
                   <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(cat)} className="text-destructive hover:text-destructive" title="Verwijderen">
                     <Trash2 className="h-4 w-4" />
@@ -137,6 +143,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
             </div>
           )}
           <div className="flex gap-2">
+            <IconPicker value={newIcon} onChange={setNewIcon} />
             <Input placeholder="Nieuwe categorie naam..." value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleAdd()} />
             <Button variant="outline" onClick={handleAdd} disabled={!newName.trim()}>
               <Plus className="h-4 w-4 mr-2" />
