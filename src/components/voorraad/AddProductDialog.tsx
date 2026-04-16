@@ -148,7 +148,6 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
           ) : (
             <div className={`grid gap-4 py-6 ${categories.length === 1 ? "grid-cols-1 max-w-[200px] mx-auto" : categories.length === 2 ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-3"}`}>
               {categories.map((cat) => {
-                const icon = CATEGORY_ICONS[cat.slug] || <Tag className="h-7 w-7 text-primary" />;
                 const colorClass = CATEGORY_COLORS[cat.slug] || "bg-primary/10 group-hover:bg-primary/20";
                 return (
                   <button
@@ -157,7 +156,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
                     className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group"
                   >
                     <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${colorClass}`}>
-                      {icon}
+                      <DynamicIcon name={cat.icon} className="h-7 w-7" />
                     </div>
                     <div className="text-center">
                       <p className="font-semibold">{cat.name}</p>
