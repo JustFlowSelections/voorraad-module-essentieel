@@ -13,6 +13,7 @@ import { ProductFieldsCard } from "@/components/instellingen/ProductFieldsCard";
 import { InventoryNavigationCard } from "@/components/instellingen/InventoryNavigationCard";
 import { LocationsCard } from "@/components/instellingen/LocationsCard";
 import { ProductCategoriesCard } from "@/components/instellingen/ProductCategoriesCard";
+import { NotificationSettingsCard } from "@/components/instellingen/NotificationSettingsCard";
 
 export const Route = createFileRoute("/_authenticated/instellingen")({
   component: InstellingenPage,
@@ -105,6 +106,9 @@ function InstellingenPage() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Notification Settings */}
+          <NotificationSettingsCard />
 
           {/* Product Categories */}
           <ProductCategoriesCard onCategoriesChanged={() => setCategoryRefreshKey((k) => k + 1)} />
