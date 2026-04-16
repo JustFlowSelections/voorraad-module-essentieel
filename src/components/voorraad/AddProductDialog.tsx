@@ -291,12 +291,10 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
                     <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${getCategoryBgClass(cat.color)}`}>
                       <DynamicIcon name={cat.icon} className={`h-7 w-7 ${getCategoryIconClass(cat.color)}`} />
                     </div>
-                    </div>
                     <div className="text-center">
                       <p className="font-semibold">{cat.name}</p>
                     </div>
                   </button>
-                </button>
               ))}
             </div>
           )}
