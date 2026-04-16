@@ -74,8 +74,8 @@ function VoorraadPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddProduct = async (newProduct: NewProductInput) => {
-    await addProduct(newProduct);
+  const handleAddProduct = async (newProduct: any) => {
+    await addProduct(newProduct as NewProductInput);
   };
 
   const handleProductClick = (item: InventoryItem) => {

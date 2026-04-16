@@ -230,6 +230,7 @@ export type Database = {
           barcode: string | null
           batch: string
           created_at: string
+          custom_fields: Json
           id: string
           image_url: string | null
           incoming_quantity: number
@@ -248,6 +249,7 @@ export type Database = {
           barcode?: string | null
           batch: string
           created_at?: string
+          custom_fields?: Json
           id?: string
           image_url?: string | null
           incoming_quantity?: number
@@ -266,6 +268,7 @@ export type Database = {
           barcode?: string | null
           batch?: string
           created_at?: string
+          custom_fields?: Json
           id?: string
           image_url?: string | null
           incoming_quantity?: number

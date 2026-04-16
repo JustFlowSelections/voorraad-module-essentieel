@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { RefreshCw, Leaf, Box, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
 
 export interface NewProduct {
   product: string;
@@ -34,6 +35,7 @@ export interface NewProduct {
   fullColor: string | null;
   incomingQuantity: number;
   economicQuantity: number;
+  customFields: Record<string, any>;
   [key: string]: any;
 }
 
@@ -48,7 +50,7 @@ const defaultFormData: NewProduct = {
   barcode: "", purchasePrice: 0, salePrice: 0, plantType: null, potSize: null,
   color: null, shade: null, vbnCode: null, piecesPerTray: null, plantHeight: null,
   qualityGroup: null, productType: "levende voorraad", imageUrl: null, fullColor: null,
-  incomingQuantity: 0, economicQuantity: 0,
+  incomingQuantity: 0, economicQuantity: 0, customFields: {},
 };
 
 interface AddProductDialogProps {
@@ -62,6 +64,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
   const [productCategory, setProductCategory] = useState<"levend" | "dood" | null>(null);
   const [formData, setFormData] = useState<NewProduct>({ ...defaultFormData });
   const [locations, setLocations] = useState<string[]>([]);
+  const { fields: customFields } = useProductFieldSettings(productCategory);
 
   useEffect(() => {
     if (!open) return;
@@ -87,12 +90,19 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
 
   const handleSelectType = (type: "levend" | "dood") => {
     setProductCategory(type);
-    setFormData({ ...defaultFormData, barcode: generateBarcode(), productType: type === "levend" ? "levende voorraad" : "dode voorraad" });
+    setFormData({ ...defaultFormData, barcode: generateBarcode(), productType: type === "levend" ? "levende voorraad" : "dode voorraad", customFields: {} });
     setStep("form");
   };
 
   const regenerateBarcode = () => {
     setFormData((prev) => ({ ...prev, barcode: generateBarcode() }));
+  };
+
+  const setCustomField = (key: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      customFields: { ...prev.customFields, [key]: value },
+    }));
   };
 
   if (step === "type") {
@@ -211,6 +221,39 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
                 <Input id="salePrice" type="number" min="0" step="0.01" value={formData.salePrice} onChange={(e) => setFormData({ ...formData, salePrice: parseFloat(e.target.value) || 0 })} placeholder="0.00" />
               </div>
             </div>
+
+            {/* Dynamic custom fields */}
+            {customFields.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">Extra velden</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  {customFields.map((field) => (
+                    <div key={field.id} className="grid gap-2">
+                      <Label>{field.field_label}</Label>
+                      {field.field_type === "select" ? (
+                        <Select
+                          value={formData.customFields[field.field_key] || ""}
+                          onValueChange={(v) => setCustomField(field.field_key, v)}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Kies..." /></SelectTrigger>
+                          <SelectContent>
+                            {(field.options || []).map((opt) => (
+                              <SelectItem key={opt.id} value={opt.label}>{opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          type={field.field_type === "number" ? "number" : "text"}
+                          value={formData.customFields[field.field_key] || ""}
+                          onChange={(e) => setCustomField(field.field_key, field.field_type === "number" ? (parseFloat(e.target.value) || "") : e.target.value)}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuleren</Button>
