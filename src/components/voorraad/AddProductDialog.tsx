@@ -12,6 +12,7 @@ import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductFieldSettings, FieldSetting } from "@/hooks/useProductFieldSettings";
+import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
 
 export interface NewProduct {
   product: string;
@@ -81,7 +82,7 @@ const CORE_FIELD_KEYS = new Set(["product", "barcode", "batch", "location", "qua
 // Fields that need special UI rendering
 const SPECIAL_FIELDS = new Set(["location", "unit", "barcode"]);
 
-import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
+
 
 interface AddProductDialogProps {
   open: boolean;
