@@ -62,92 +62,121 @@ export type Database = {
         }
         Relationships: []
       }
-      products: {
+      product_plant_details: {
         Row: {
-          barcode: string | null
-          batch: string
           color: string | null
           created_at: string
           floriday_batch_id: string | null
           floriday_trade_item_id: string | null
           full_color: string | null
           id: string
-          image_url: string | null
-          incoming_quantity: number
-          location: string
-          min_quantity: number
           pieces_per_tray: number | null
           plant_height: string | null
           plant_type: string | null
           pot_size: string | null
+          product_id: string
+          quality_group: string | null
+          shade: string | null
+          updated_at: string
+          vbn_code: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          floriday_batch_id?: string | null
+          floriday_trade_item_id?: string | null
+          full_color?: string | null
+          id?: string
+          pieces_per_tray?: number | null
+          plant_height?: string | null
+          plant_type?: string | null
+          pot_size?: string | null
+          product_id: string
+          quality_group?: string | null
+          shade?: string | null
+          updated_at?: string
+          vbn_code?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          floriday_batch_id?: string | null
+          floriday_trade_item_id?: string | null
+          full_color?: string | null
+          id?: string
+          pieces_per_tray?: number | null
+          plant_height?: string | null
+          plant_type?: string | null
+          pot_size?: string | null
+          product_id?: string
+          quality_group?: string | null
+          shade?: string | null
+          updated_at?: string
+          vbn_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_plant_details_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          barcode: string | null
+          batch: string
+          created_at: string
+          id: string
+          image_url: string | null
+          incoming_quantity: number
+          location: string
+          min_quantity: number
           product: string
           product_type: string
           purchase_price: number | null
-          quality_group: string | null
           quantity: number
           sale_price: number | null
-          shade: string | null
           unit: string
           updated_at: string
-          vbn_code: string | null
           weight: string | null
         }
         Insert: {
           barcode?: string | null
           batch: string
-          color?: string | null
           created_at?: string
-          floriday_batch_id?: string | null
-          floriday_trade_item_id?: string | null
-          full_color?: string | null
           id?: string
           image_url?: string | null
           incoming_quantity?: number
           location: string
           min_quantity?: number
-          pieces_per_tray?: number | null
-          plant_height?: string | null
-          plant_type?: string | null
-          pot_size?: string | null
           product: string
           product_type?: string
           purchase_price?: number | null
-          quality_group?: string | null
           quantity?: number
           sale_price?: number | null
-          shade?: string | null
           unit?: string
           updated_at?: string
-          vbn_code?: string | null
           weight?: string | null
         }
         Update: {
           barcode?: string | null
           batch?: string
-          color?: string | null
           created_at?: string
-          floriday_batch_id?: string | null
-          floriday_trade_item_id?: string | null
-          full_color?: string | null
           id?: string
           image_url?: string | null
           incoming_quantity?: number
           location?: string
           min_quantity?: number
-          pieces_per_tray?: number | null
-          plant_height?: string | null
-          plant_type?: string | null
-          pot_size?: string | null
           product?: string
           product_type?: string
           purchase_price?: number | null
-          quality_group?: string | null
           quantity?: number
           sale_price?: number | null
-          shade?: string | null
           unit?: string
           updated_at?: string
-          vbn_code?: string | null
           weight?: string | null
         }
         Relationships: []
