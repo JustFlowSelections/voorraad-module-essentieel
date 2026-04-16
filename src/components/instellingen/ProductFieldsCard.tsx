@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Package, Plus, Trash2, GripVertical, List, Leaf, Box } from "lucide-react";
+import { Loader2, Package, Plus, Trash2, GripVertical, List } from "lucide-react";
+import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FieldOptionsDialog } from "./FieldOptionsDialog";
@@ -26,6 +27,7 @@ interface ProductCategory {
   id: string;
   name: string;
   slug: string;
+  icon: string | null;
 }
 
 function FieldList({
@@ -203,7 +205,7 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
                 <TabsList className="w-full">
                   {categories.map((cat) => (
                     <TabsTrigger key={cat.slug} value={cat.slug} className="flex-1 gap-2">
-                      {cat.slug === "levend" ? <Leaf className="h-4 w-4" /> : <Box className="h-4 w-4" />}
+                      <DynamicIcon name={cat.icon} className="h-4 w-4" />
                       {cat.name}
                     </TabsTrigger>
                   ))}
