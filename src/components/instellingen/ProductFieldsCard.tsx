@@ -87,7 +87,7 @@ function FieldList({
   );
 }
 
-export function ProductFieldsCard() {
+export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
   const [fields, setFields] = useState<FieldSetting[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loading, setLoading] = useState(true);
