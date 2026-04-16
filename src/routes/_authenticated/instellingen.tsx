@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/layout/Header";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
+import { ProductFieldsCard } from "@/components/instellingen/ProductFieldsCard";
+import { InventoryNavigationCard } from "@/components/instellingen/InventoryNavigationCard";
+import { LocationsCard } from "@/components/instellingen/LocationsCard";
+import { ProductCategoriesCard } from "@/components/instellingen/ProductCategoriesCard";
 
 export const Route = createFileRoute("/_authenticated/instellingen")({
   component: InstellingenPage,
@@ -20,30 +24,13 @@ function InstellingenPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (data?.display_name) setDisplayName(data.display_name);
-    })();
-  }, []);
 
   const handleUpdateProfile = async () => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Niet ingelogd");
-      const { error } = await supabase
-        .from("profiles")
-        .update({ display_name: displayName.trim() })
-        .eq("id", user.id);
+      const { error } = await supabase.from("profiles").update({ display_name: displayName.trim() }).eq("id", user.id);
       if (error) throw error;
       toast.success("Profiel bijgewerkt");
     } catch {
@@ -54,14 +41,8 @@ function InstellingenPage() {
   };
 
   const handleChangePassword = async () => {
-    if (newPassword.length < 6) {
-      toast.error("Wachtwoord moet minimaal 6 tekens bevatten");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("Wachtwoorden komen niet overeen");
-      return;
-    }
+    if (newPassword.length < 6) { toast.error("Wachtwoord moet minimaal 6 tekens bevatten"); return; }
+    if (newPassword !== confirmPassword) { toast.error("Wachtwoorden komen niet overeen"); return; }
     setChangingPassword(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -79,62 +60,63 @@ function InstellingenPage() {
   return (
     <>
       <Header title="Instellingen" />
-      <main className="p-6 space-y-6 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profielgegevens</CardTitle>
-            <CardDescription>Werk je persoonlijke gegevens bij</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Weergavenaam</Label>
-              <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={100} placeholder="Je naam" />
-            </div>
-            <Button onClick={handleUpdateProfile} disabled={saving}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Opslaan
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Wachtwoord wijzigen</CardTitle>
-            <CardDescription>Kies een nieuw wachtwoord</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">Nieuw wachtwoord</Label>
-              <Input id="newPassword" type="password" value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)} maxLength={128} placeholder="••••••••" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Bevestig wachtwoord</Label>
-              <Input id="confirmPassword" type="password" value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)} maxLength={128} placeholder="••••••••" />
-            </div>
-            <Button onClick={handleChangePassword} disabled={changingPassword}>
-              {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Wachtwoord wijzigen
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Notificatievoorkeuren</CardTitle>
-            <CardDescription>Beheer je notificatie-instellingen</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">E-mailnotificaties</p>
-                <p className="text-xs text-muted-foreground">Ontvang meldingen per e-mail</p>
+      <main className="p-6 space-y-6">
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Profile */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                <CardTitle>Profielgegevens</CardTitle>
               </div>
-              <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
-            </div>
-          </CardContent>
-        </Card>
+              <CardDescription>Werk je persoonlijke gegevens bij</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Weergavenaam</Label>
+                <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={100} placeholder="Je naam" />
+              </div>
+              <Button onClick={handleUpdateProfile} disabled={saving}>
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Opslaan
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Password */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Wachtwoord wijzigen</CardTitle>
+              <CardDescription>Kies een nieuw wachtwoord</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nieuw wachtwoord</Label>
+                <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} maxLength={128} placeholder="••••••••" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Bevestig wachtwoord</Label>
+                <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} maxLength={128} placeholder="••••••••" />
+              </div>
+              <Button onClick={handleChangePassword} disabled={changingPassword}>
+                {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Wachtwoord wijzigen
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Product Categories */}
+          <ProductCategoriesCard />
+
+          {/* Product Fields */}
+          <ProductFieldsCard />
+
+          {/* Locations */}
+          <LocationsCard />
+
+          {/* Inventory Navigation */}
+          <InventoryNavigationCard />
+        </div>
       </main>
     </>
   );
