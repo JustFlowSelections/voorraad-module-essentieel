@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Leaf, Box, ArrowLeft, Loader2, Tag } from "lucide-react";
+import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
+import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
 
@@ -58,11 +59,6 @@ const defaultFormData: NewProduct = {
   color: null, shade: null, vbnCode: null, piecesPerTray: null, plantHeight: null,
   qualityGroup: null, productType: "", imageUrl: null, fullColor: null,
   incomingQuantity: 0, economicQuantity: 0, customFields: {},
-};
-
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  levend: <Leaf className="h-7 w-7 text-emerald-600" />,
-  dood: <Box className="h-7 w-7 text-amber-600" />,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
