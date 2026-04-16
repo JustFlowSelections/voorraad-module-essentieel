@@ -174,7 +174,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
             <Select value={newColor} onValueChange={setNewColor}>
               <SelectTrigger className="w-[100px]">
                 <div className="flex items-center gap-2">
-                  <div className={`h-3 w-3 rounded-full ${getCategoryColor(newColor).bg.replace('/10', '')}`} />
+                  <div className={`h-3 w-3 rounded-full ${getCategoryColor(newColor).dot}`} />
                   <span className="capitalize text-xs">{newColor}</span>
                 </div>
               </SelectTrigger>
@@ -182,7 +182,7 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
                 {AVAILABLE_COLORS.map((c) => (
                   <SelectItem key={c} value={c}>
                     <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${getCategoryColor(c).bg.replace('/10', '')}`} />
+                      <div className={`h-3 w-3 rounded-full ${getCategoryColor(c).dot}`} />
                       <span className="capitalize">{c}</span>
                     </div>
                   </SelectItem>
