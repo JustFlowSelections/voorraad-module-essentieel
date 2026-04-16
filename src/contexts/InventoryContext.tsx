@@ -29,6 +29,7 @@ export interface InventoryItem {
   incomingQuantity: number;
   economicQuantity: number;
   productType: string;
+  customFields: Record<string, any>;
 }
 
 export const calculateStatus = (quantity: number, minQuantity: number): string => {
@@ -116,6 +117,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
             if (pt === "dood") return "dode voorraad";
             return pt;
           })(),
+          customFields: (item.custom_fields as Record<string, any>) || {},
         };
       });
 
@@ -147,7 +149,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         sale_price: newProduct.salePrice,
         image_url: newProduct.imageUrl,
         product_type: newProduct.productType,
-      }).select("id").single();
+        custom_fields: newProduct.customFields || {},
+      } as any).select("id").single();
 
       if (productError) throw productError;
 
@@ -195,7 +198,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           sale_price: updatedProduct.salePrice,
           image_url: updatedProduct.imageUrl,
           product_type: updatedProduct.productType,
-        })
+          custom_fields: updatedProduct.customFields || {},
+        } as any)
         .eq("id", updatedProduct.id);
 
       if (productError) throw productError;
