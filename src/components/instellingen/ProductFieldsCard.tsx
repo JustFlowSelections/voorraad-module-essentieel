@@ -17,10 +17,8 @@ export interface FieldSetting {
   field_key: string;
   field_label: string;
   field_type: string;
-  is_active: boolean;
   is_custom: boolean;
   sort_order: number;
-  applies_to: string;
   active_per_category: Record<string, boolean>;
 }
 
