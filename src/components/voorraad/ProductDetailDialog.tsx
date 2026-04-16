@@ -12,6 +12,7 @@ import {
 import { Download, Package, Pencil, Save, X } from "lucide-react";
 import Barcode from "react-barcode";
 import { InventoryItem, calculateStatus } from "@/contexts/InventoryContext";
+import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
 
 interface ProductDetailDialogProps {
   open: boolean;
@@ -26,10 +27,18 @@ const statusConfig = {
   out: { label: "Voorraad op", variant: "destructive" as const },
 };
 
+function getCategorySlug(productType: string): string | null {
+  if (productType.includes("levend")) return "levend";
+  if (productType.includes("dood")) return "dood";
+  return null;
+}
+
 export function ProductDetailDialog({ open, onOpenChange, product, onUpdate }: ProductDetailDialogProps) {
   const barcodeRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<InventoryItem | null>(null);
+  const categorySlug = product ? getCategorySlug(product.productType) : null;
+  const { fields: customFields } = useProductFieldSettings(categorySlug);
 
   useEffect(() => {
     if (product) {
@@ -85,6 +94,14 @@ export function ProductDetailDialog({ open, onOpenChange, product, onUpdate }: P
     setIsEditing(false);
   };
 
+  const setCustomField = (key: string, value: any) => {
+    if (!editData) return;
+    setEditData({
+      ...editData,
+      customFields: { ...editData.customFields, [key]: value },
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -137,6 +154,39 @@ export function ProductDetailDialog({ open, onOpenChange, product, onUpdate }: P
                 <div className="grid gap-2"><Label>Verkoopprijs (€)</Label><Input type="number" min="0" step="0.01" value={editData.salePrice} onChange={(e) => setEditData({ ...editData, salePrice: parseFloat(e.target.value) || 0 })} /></div>
               </div>
               <div className="grid gap-2"><Label>Barcode</Label><Input value={editData.barcode} onChange={(e) => setEditData({ ...editData, barcode: e.target.value })} className="font-mono" /></div>
+
+              {/* Dynamic custom fields - edit mode */}
+              {customFields.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Extra velden</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {customFields.map((field) => (
+                      <div key={field.id} className="grid gap-2">
+                        <Label>{field.field_label}</Label>
+                        {field.field_type === "select" ? (
+                          <Select
+                            value={editData.customFields?.[field.field_key] || ""}
+                            onValueChange={(v) => setCustomField(field.field_key, v)}
+                          >
+                            <SelectTrigger><SelectValue placeholder="Kies..." /></SelectTrigger>
+                            <SelectContent>
+                              {(field.options || []).map((opt) => (
+                                <SelectItem key={opt.id} value={opt.label}>{opt.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            type={field.field_type === "number" ? "number" : "text"}
+                            value={editData.customFields?.[field.field_key] || ""}
+                            onChange={(e) => setCustomField(field.field_key, field.field_type === "number" ? (parseFloat(e.target.value) || "") : e.target.value)}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -161,9 +211,20 @@ export function ProductDetailDialog({ open, onOpenChange, product, onUpdate }: P
                 {displayProduct.plantType && <div><p className="text-muted-foreground">Plantsoort</p><p className="font-medium">{displayProduct.plantType}</p></div>}
                 {displayProduct.plantHeight && <div><p className="text-muted-foreground">Planthoogte</p><p className="font-medium">{displayProduct.plantHeight}</p></div>}
                 {displayProduct.vbnCode && <div><p className="text-muted-foreground">VBN Code</p><p className="font-medium">{displayProduct.vbnCode}</p></div>}
+
+                {/* Dynamic custom fields - view mode */}
+                {customFields.map((field) => {
+                  const value = displayProduct.customFields?.[field.field_key];
+                  if (!value) return null;
+                  return (
+                    <div key={field.id}>
+                      <p className="text-muted-foreground">{field.field_label}</p>
+                      <p className="font-medium">{value}</p>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Barcode */}
               {barcodeValue && (
                 <div className="border rounded-lg p-4 text-center">
                   <div ref={barcodeRef} className="flex justify-center">
