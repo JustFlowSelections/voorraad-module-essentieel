@@ -67,6 +67,25 @@ export function ProductCategoriesCard({ onCategoriesChanged }: Props) {
         else throw error;
         return;
       }
+
+      // Add the new category slug to active_per_category for all standard (non-custom) fields
+      const { data: fieldSettings } = await supabase
+        .from("product_field_settings")
+        .select("id, is_custom, active_per_category")
+        .eq("is_custom", false);
+
+      if (fieldSettings && fieldSettings.length > 0) {
+        await Promise.all(
+          fieldSettings.map((f: any) => {
+            const updated = { ...(f.active_per_category || {}), [slug]: true };
+            return supabase
+              .from("product_field_settings")
+              .update({ active_per_category: updated, updated_at: new Date().toISOString() } as any)
+              .eq("id", f.id);
+          })
+        );
+      }
+
       toast.success(`Categorie "${newName.trim()}" toegevoegd`);
       setNewName("");
       setNewIcon("tag");
