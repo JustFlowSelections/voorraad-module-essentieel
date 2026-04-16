@@ -12,6 +12,7 @@ import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductFieldSettings, FieldSetting } from "@/hooks/useProductFieldSettings";
+import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
 
 export interface NewProduct {
   product: string;
@@ -45,6 +46,7 @@ interface ProductCategory {
   name: string;
   slug: string;
   icon: string | null;
+  color: string | null;
 }
 
 const generateBarcode = () => {
@@ -80,10 +82,7 @@ const CORE_FIELD_KEYS = new Set(["product", "barcode", "batch", "location", "qua
 // Fields that need special UI rendering
 const SPECIAL_FIELDS = new Set(["location", "unit", "barcode"]);
 
-const CATEGORY_COLORS: Record<string, string> = {
-  levend: "bg-emerald-500/10 group-hover:bg-emerald-500/20",
-  dood: "bg-amber-500/10 group-hover:bg-amber-500/20",
-};
+
 
 interface AddProductDialogProps {
   open: boolean;
@@ -106,7 +105,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
     (async () => {
       const [locRes, catRes] = await Promise.all([
         supabase.from("locations").select("name").order("sort_order"),
-        supabase.from("product_categories").select("id, name, slug, icon").order("sort_order"),
+        supabase.from("product_categories").select("id, name, slug, icon, color").order("sort_order"),
       ]);
       if (locRes.data) setLocations(locRes.data.map((l) => l.name));
       if (catRes.data) setCategories(catRes.data as unknown as ProductCategory[]);
@@ -284,23 +283,20 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
             </div>
           ) : (
             <div className={`grid gap-4 py-6 ${categories.length === 1 ? "grid-cols-1 max-w-[200px] mx-auto" : categories.length === 2 ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-3"}`}>
-              {categories.map((cat) => {
-                const colorClass = CATEGORY_COLORS[cat.slug] || "bg-primary/10 group-hover:bg-primary/20";
-                return (
+              {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => handleSelectType(cat)}
                     className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group"
                   >
-                    <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${colorClass}`}>
-                      <DynamicIcon name={cat.icon} className="h-7 w-7" />
+                    <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${getCategoryBgClass(cat.color)}`}>
+                      <DynamicIcon name={cat.icon} className={`h-7 w-7 ${getCategoryIconClass(cat.color)}`} />
                     </div>
                     <div className="text-center">
                       <p className="font-semibold">{cat.name}</p>
                     </div>
                   </button>
-                );
-              })}
+              ))}
             </div>
           )}
         </DialogContent>
