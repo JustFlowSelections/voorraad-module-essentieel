@@ -90,6 +90,7 @@ export type Database = {
           unit: string
           updated_at: string
           vbn_code: string | null
+          weight: string | null
         }
         Insert: {
           barcode?: string | null
@@ -118,6 +119,7 @@ export type Database = {
           unit?: string
           updated_at?: string
           vbn_code?: string | null
+          weight?: string | null
         }
         Update: {
           barcode?: string | null
@@ -146,6 +148,7 @@ export type Database = {
           unit?: string
           updated_at?: string
           vbn_code?: string | null
+          weight?: string | null
         }
         Relationships: []
       }
