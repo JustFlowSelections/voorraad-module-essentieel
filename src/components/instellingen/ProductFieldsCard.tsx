@@ -50,10 +50,13 @@ function FieldList({
     );
   }
 
+  const REQUIRED_FIELD_KEYS = new Set(["product", "location"]);
+
   return (
     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
       {fields.map((field) => {
         const isActive = field.active_per_category?.[categorySlug] ?? false;
+        const isRequired = REQUIRED_FIELD_KEYS.has(field.field_key);
         return (
           <div
             key={field.id}
@@ -62,7 +65,8 @@ function FieldList({
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Switch
-                checked={isActive}
+                checked={isRequired ? true : isActive}
+                disabled={isRequired}
                 onCheckedChange={() => onToggle(field, categorySlug)}
               />
               <div className="min-w-0">
