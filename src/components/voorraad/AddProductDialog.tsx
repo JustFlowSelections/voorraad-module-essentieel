@@ -11,7 +11,7 @@ import {
 import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/icon-picker";
 import { supabase } from "@/integrations/supabase/client";
-import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
+import { useProductFieldSettings, FieldSetting } from "@/hooks/useProductFieldSettings";
 
 export interface NewProduct {
   product: string;
@@ -61,6 +61,22 @@ const defaultFormData: NewProduct = {
   incomingQuantity: 0, economicQuantity: 0, customFields: {},
 };
 
+// Standard field keys that map to top-level product properties (not custom_fields)
+const STANDARD_FIELD_MAP: Record<string, keyof NewProduct> = {
+  product: "product",
+  batch: "batch",
+  location: "location",
+  quantity: "quantity",
+  min_quantity: "minQuantity",
+  unit: "unit",
+  barcode: "barcode",
+  purchase_price: "purchasePrice",
+  sale_price: "salePrice",
+};
+
+// Fields that need special UI rendering
+const SPECIAL_FIELDS = new Set(["location", "unit", "barcode"]);
+
 const CATEGORY_COLORS: Record<string, string> = {
   levend: "bg-emerald-500/10 group-hover:bg-emerald-500/20",
   dood: "bg-amber-500/10 group-hover:bg-amber-500/20",
@@ -79,9 +95,8 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
   const [locations, setLocations] = useState<string[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
-  const { fields: customFields } = useProductFieldSettings(selectedCategory);
+  const { fields: activeFields } = useProductFieldSettings(selectedCategory);
 
-  // Fetch categories every time the dialog opens
   useEffect(() => {
     if (!open) return;
     setLoadingCategories(true);
@@ -120,14 +135,133 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
     setFormData((prev) => ({ ...prev, barcode: generateBarcode() }));
   };
 
-  const setCustomField = (key: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      customFields: { ...prev.customFields, [key]: value },
-    }));
+  const getFieldValue = (field: FieldSetting): any => {
+    const standardKey = STANDARD_FIELD_MAP[field.field_key];
+    if (standardKey) return formData[standardKey] ?? "";
+    return formData.customFields[field.field_key] ?? "";
+  };
+
+  const setFieldValue = (field: FieldSetting, value: any) => {
+    const standardKey = STANDARD_FIELD_MAP[field.field_key];
+    if (standardKey) {
+      setFormData((prev) => ({ ...prev, [standardKey]: value }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        customFields: { ...prev.customFields, [field.field_key]: value },
+      }));
+    }
   };
 
   const selectedCategoryName = categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory;
+
+  // Deduplicate fields by field_key (keep first occurrence)
+  const deduped = activeFields.filter((f, i, arr) => arr.findIndex((x) => x.field_key === f.field_key) === i);
+
+  // Required fields that must always show as top-level inputs
+  const REQUIRED_KEYS = new Set(["product"]);
+
+  const renderField = (field: FieldSetting) => {
+    const isRequired = REQUIRED_KEYS.has(field.field_key);
+
+    // Special: Location dropdown
+    if (field.field_key === "location") {
+      return (
+        <div key={field.id} className="grid gap-2">
+          <Label>{field.field_label} *</Label>
+          <Select value={String(getFieldValue(field))} onValueChange={(v) => setFieldValue(field, v)}>
+            <SelectTrigger><SelectValue placeholder="Kies locatie" /></SelectTrigger>
+            <SelectContent>
+              {locations.length > 0 ? locations.map((loc) => (
+                <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+              )) : (
+                <SelectItem value="Onbekend">Onbekend</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    // Special: Unit dropdown
+    if (field.field_key === "unit") {
+      return (
+        <div key={field.id} className="grid gap-2">
+          <Label>{field.field_label}</Label>
+          <Select value={String(getFieldValue(field))} onValueChange={(v) => setFieldValue(field, v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="stuks">Stuks</SelectItem>
+              <SelectItem value="bossen">Bossen</SelectItem>
+              <SelectItem value="dozen">Dozen</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    // Special: Barcode with regenerate button
+    if (field.field_key === "barcode") {
+      return (
+        <div key={field.id} className="grid gap-2">
+          <Label>{field.field_label}</Label>
+          <div className="flex gap-2">
+            <Input value={String(getFieldValue(field))} onChange={(e) => setFieldValue(field, e.target.value)} placeholder="Automatisch gegenereerd" className="font-mono" />
+            <Button type="button" variant="outline" size="icon" onClick={regenerateBarcode} title="Nieuwe barcode genereren"><RefreshCw className="h-4 w-4" /></Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Select-type custom field
+    if (field.field_type === "select") {
+      return (
+        <div key={field.id} className="grid gap-2">
+          <Label>{field.field_label}</Label>
+          <Select value={String(getFieldValue(field) || "")} onValueChange={(v) => setFieldValue(field, v)}>
+            <SelectTrigger><SelectValue placeholder="Kies..." /></SelectTrigger>
+            <SelectContent>
+              {(field.options || []).map((opt) => (
+                <SelectItem key={opt.id} value={opt.label}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    // Number field
+    if (field.field_type === "number") {
+      const isPriceField = field.field_key === "purchase_price" || field.field_key === "sale_price";
+      return (
+        <div key={field.id} className="grid gap-2">
+          <Label>{field.field_label}{isPriceField ? " (€)" : ""}{isRequired ? " *" : ""}</Label>
+          <Input
+            type="number"
+            min="0"
+            step={isPriceField ? "0.01" : "1"}
+            value={getFieldValue(field)}
+            onChange={(e) => setFieldValue(field, field.field_key === "purchase_price" || field.field_key === "sale_price" ? (parseFloat(e.target.value) || 0) : (parseInt(e.target.value) || 0))}
+            required={isRequired}
+            placeholder={isPriceField ? "0.00" : undefined}
+          />
+        </div>
+      );
+    }
+
+    // Default: text field
+    return (
+      <div key={field.id} className="grid gap-2">
+        <Label>{field.field_label}{isRequired ? " *" : ""}</Label>
+        <Input
+          type="text"
+          value={String(getFieldValue(field) || "")}
+          onChange={(e) => setFieldValue(field, e.target.value || null)}
+          required={isRequired}
+        />
+      </div>
+    );
+  };
 
   if (step === "type") {
     return (
@@ -183,96 +317,9 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            <div className="grid gap-2">
-              <Label htmlFor="product">Productnaam *</Label>
-              <Input id="product" placeholder="bijv. Rode Tulpen" value={formData.product} onChange={(e) => setFormData({ ...formData, product: e.target.value })} required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="barcode">Barcode</Label>
-              <div className="flex gap-2">
-                <Input id="barcode" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} placeholder="Automatisch gegenereerd" className="font-mono" />
-                <Button type="button" variant="outline" size="icon" onClick={regenerateBarcode} title="Nieuwe barcode genereren"><RefreshCw className="h-4 w-4" /></Button>
-              </div>
-            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="batch">Partijnummer *</Label>
-                <Input id="batch" placeholder="bijv. TUL-2024-001" value={formData.batch} onChange={(e) => setFormData({ ...formData, batch: e.target.value })} required />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="location">Locatie *</Label>
-                <Select value={formData.location} onValueChange={(value) => setFormData({ ...formData, location: value })}>
-                  <SelectTrigger id="location"><SelectValue placeholder="Kies locatie" /></SelectTrigger>
-                  <SelectContent>
-                    {locations.length > 0 ? locations.map((loc) => (<SelectItem key={loc} value={loc}>{loc}</SelectItem>)) : (<SelectItem value="Onbekend">Onbekend</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+              {deduped.map((field) => renderField(field))}
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="quantity">Aantal *</Label>
-                <Input id="quantity" type="number" min="0" value={formData.quantity} onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })} required />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="minQuantity">Minimum *</Label>
-                <Input id="minQuantity" type="number" min="0" value={formData.minQuantity} onChange={(e) => setFormData({ ...formData, minQuantity: parseInt(e.target.value) || 0 })} required />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="unit">Eenheid</Label>
-                <Select value={formData.unit} onValueChange={(value) => setFormData({ ...formData, unit: value })}>
-                  <SelectTrigger id="unit"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="stuks">Stuks</SelectItem>
-                    <SelectItem value="bossen">Bossen</SelectItem>
-                    <SelectItem value="dozen">Dozen</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="purchasePrice">Inkoopprijs (€)</Label>
-                <Input id="purchasePrice" type="number" min="0" step="0.01" value={formData.purchasePrice} onChange={(e) => setFormData({ ...formData, purchasePrice: parseFloat(e.target.value) || 0 })} placeholder="0.00" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="salePrice">Verkoopprijs (€)</Label>
-                <Input id="salePrice" type="number" min="0" step="0.01" value={formData.salePrice} onChange={(e) => setFormData({ ...formData, salePrice: parseFloat(e.target.value) || 0 })} placeholder="0.00" />
-              </div>
-            </div>
-
-            {/* Dynamic custom fields from product_field_settings */}
-            {customFields.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-muted-foreground">Extra velden</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  {customFields.map((field) => (
-                    <div key={field.id} className="grid gap-2">
-                      <Label>{field.field_label}</Label>
-                      {field.field_type === "select" ? (
-                        <Select
-                          value={formData.customFields[field.field_key] || ""}
-                          onValueChange={(v) => setCustomField(field.field_key, v)}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Kies..." /></SelectTrigger>
-                          <SelectContent>
-                            {(field.options || []).map((opt) => (
-                              <SelectItem key={opt.id} value={opt.label}>{opt.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <Input
-                          type={field.field_type === "number" ? "number" : "text"}
-                          value={formData.customFields[field.field_key] || ""}
-                          onChange={(e) => setCustomField(field.field_key, field.field_type === "number" ? (parseFloat(e.target.value) || "") : e.target.value)}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Annuleren</Button>
