@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Leaf, Box, ArrowLeft } from "lucide-react";
+import { RefreshCw, Leaf, Box, ArrowLeft, Loader2, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
 
@@ -39,6 +39,13 @@ export interface NewProduct {
   [key: string]: any;
 }
 
+interface ProductCategory {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+}
+
 const generateBarcode = () => {
   const timestamp = Date.now().toString().slice(-8);
   const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
@@ -49,8 +56,18 @@ const defaultFormData: NewProduct = {
   product: "", batch: "", location: "", quantity: 0, minQuantity: 0, unit: "stuks",
   barcode: "", purchasePrice: 0, salePrice: 0, plantType: null, potSize: null,
   color: null, shade: null, vbnCode: null, piecesPerTray: null, plantHeight: null,
-  qualityGroup: null, productType: "levende voorraad", imageUrl: null, fullColor: null,
+  qualityGroup: null, productType: "", imageUrl: null, fullColor: null,
   incomingQuantity: 0, economicQuantity: 0, customFields: {},
+};
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  levend: <Leaf className="h-7 w-7 text-emerald-600" />,
+  dood: <Box className="h-7 w-7 text-amber-600" />,
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  levend: "bg-emerald-500/10 group-hover:bg-emerald-500/20",
+  dood: "bg-amber-500/10 group-hover:bg-amber-500/20",
 };
 
 interface AddProductDialogProps {
@@ -61,23 +78,32 @@ interface AddProductDialogProps {
 
 export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialogProps) {
   const [step, setStep] = useState<"type" | "form">("type");
-  const [productCategory, setProductCategory] = useState<"levend" | "dood" | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [formData, setFormData] = useState<NewProduct>({ ...defaultFormData });
   const [locations, setLocations] = useState<string[]>([]);
-  const { fields: customFields } = useProductFieldSettings(productCategory);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const { fields: customFields } = useProductFieldSettings(selectedCategory);
 
+  // Fetch categories every time the dialog opens
   useEffect(() => {
     if (!open) return;
+    setLoadingCategories(true);
     (async () => {
-      const { data } = await supabase.from("locations").select("name").order("sort_order");
-      if (data) setLocations(data.map((l) => l.name));
+      const [locRes, catRes] = await Promise.all([
+        supabase.from("locations").select("name").order("sort_order"),
+        supabase.from("product_categories").select("id, name, slug, icon").order("sort_order"),
+      ]);
+      if (locRes.data) setLocations(locRes.data.map((l) => l.name));
+      if (catRes.data) setCategories(catRes.data as unknown as ProductCategory[]);
+      setLoadingCategories(false);
     })();
   }, [open]);
 
   useEffect(() => {
     if (open) {
       setStep("type");
-      setProductCategory(null);
+      setSelectedCategory(null);
       setFormData({ ...defaultFormData, barcode: generateBarcode() });
     }
   }, [open]);
@@ -88,9 +114,9 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
     onOpenChange(false);
   };
 
-  const handleSelectType = (type: "levend" | "dood") => {
-    setProductCategory(type);
-    setFormData({ ...defaultFormData, barcode: generateBarcode(), productType: type === "levend" ? "levende voorraad" : "dode voorraad", customFields: {} });
+  const handleSelectType = (cat: ProductCategory) => {
+    setSelectedCategory(cat.slug);
+    setFormData({ ...defaultFormData, barcode: generateBarcode(), productType: cat.slug, customFields: {} });
     setStep("form");
   };
 
@@ -105,6 +131,8 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
     }));
   };
 
+  const selectedCategoryName = categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory;
+
   if (step === "type") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -113,20 +141,36 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
             <DialogTitle>Nieuw Product Toevoegen</DialogTitle>
             <DialogDescription>Kies het type voorraad dat u wilt toevoegen.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-6">
-            <button onClick={() => handleSelectType("levend")} className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group">
-              <div className="h-14 w-14 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                <Leaf className="h-7 w-7 text-emerald-600" />
-              </div>
-              <div className="text-center"><p className="font-semibold">Levend</p><p className="text-xs text-muted-foreground mt-1">Planten, bloemen, etc.</p></div>
-            </button>
-            <button onClick={() => handleSelectType("dood")} className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group">
-              <div className="h-14 w-14 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
-                <Box className="h-7 w-7 text-amber-600" />
-              </div>
-              <div className="text-center"><p className="font-semibold">Dood</p><p className="text-xs text-muted-foreground mt-1">Potjes, vaasjes, etc.</p></div>
-            </button>
-          </div>
+          {loadingCategories ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Geen categorieën gevonden. Voeg eerst categorieën toe via Instellingen.
+            </div>
+          ) : (
+            <div className={`grid gap-4 py-6 ${categories.length === 1 ? "grid-cols-1 max-w-[200px] mx-auto" : categories.length === 2 ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-3"}`}>
+              {categories.map((cat) => {
+                const icon = CATEGORY_ICONS[cat.slug] || <Tag className="h-7 w-7 text-primary" />;
+                const colorClass = CATEGORY_COLORS[cat.slug] || "bg-primary/10 group-hover:bg-primary/20";
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => handleSelectType(cat)}
+                    className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-border bg-card hover:border-primary hover:bg-accent transition-all group"
+                  >
+                    <div className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors ${colorClass}`}>
+                      {icon}
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold">{cat.name}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     );
@@ -138,7 +182,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setStep("type")}><ArrowLeft className="h-4 w-4" /></Button>
-            {productCategory === "levend" ? (<><Leaf className="h-5 w-5 text-emerald-600" /> Levend Product</>) : (<><Box className="h-5 w-5 text-amber-600" /> Dood Product</>)}
+            {selectedCategoryName} Product
           </DialogTitle>
           <DialogDescription>Vul de gegevens in om een nieuw product toe te voegen.</DialogDescription>
         </DialogHeader>
@@ -146,7 +190,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
           <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="grid gap-2">
               <Label htmlFor="product">Productnaam *</Label>
-              <Input id="product" placeholder={productCategory === "levend" ? "bijv. Rode Tulpen" : "bijv. Terracotta pot 12cm"} value={formData.product} onChange={(e) => setFormData({ ...formData, product: e.target.value })} required />
+              <Input id="product" placeholder="bijv. Rode Tulpen" value={formData.product} onChange={(e) => setFormData({ ...formData, product: e.target.value })} required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="barcode">Barcode</Label>
@@ -191,26 +235,6 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
                 </Select>
               </div>
             </div>
-            {productCategory === "levend" && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Potmaat</Label>
-                  <Input value={formData.potSize || ""} onChange={(e) => setFormData({ ...formData, potSize: e.target.value || null })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Kleur</Label>
-                  <Input value={formData.color || ""} onChange={(e) => setFormData({ ...formData, color: e.target.value || null })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Tint</Label>
-                  <Input value={formData.shade || ""} onChange={(e) => setFormData({ ...formData, shade: e.target.value || null })} />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Planthoogte</Label>
-                  <Input value={formData.plantHeight || ""} onChange={(e) => setFormData({ ...formData, plantHeight: e.target.value || null })} />
-                </div>
-              </div>
-            )}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="purchasePrice">Inkoopprijs (€)</Label>
@@ -222,7 +246,7 @@ export function AddProductDialog({ open, onOpenChange, onAdd }: AddProductDialog
               </div>
             </div>
 
-            {/* Dynamic custom fields */}
+            {/* Dynamic custom fields from product_field_settings */}
             {customFields.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-muted-foreground">Extra velden</Label>
