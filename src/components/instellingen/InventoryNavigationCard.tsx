@@ -32,7 +32,7 @@ export function InventoryNavigationCard() {
       try {
         const [settingsRes, fieldsRes] = await Promise.all([
           supabase.from("inventory_settings").select("hierarchy_levels").maybeSingle(),
-          supabase.from("product_field_settings").select("field_key, field_label").eq("is_active", true).eq("is_custom", true),
+          supabase.from("product_field_settings").select("field_key, field_label").eq("is_custom", true),
         ]);
 
         if (settingsRes.data?.hierarchy_levels) {

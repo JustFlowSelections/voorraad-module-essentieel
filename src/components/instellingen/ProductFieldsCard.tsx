@@ -17,10 +17,8 @@ export interface FieldSetting {
   field_key: string;
   field_label: string;
   field_type: string;
-  is_active: boolean;
   is_custom: boolean;
   sort_order: number;
-  applies_to: string;
   active_per_category: Record<string, boolean>;
 }
 
@@ -55,7 +53,7 @@ function FieldList({
   return (
     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
       {fields.map((field) => {
-        const isActive = field.active_per_category?.[categorySlug] ?? field.is_active;
+        const isActive = field.active_per_category?.[categorySlug] ?? false;
         return (
           <div
             key={field.id}
@@ -138,7 +136,7 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
   useEffect(() => { fetchData(); }, [refreshKey]);
 
   const handleToggle = async (field: FieldSetting, categorySlug: string) => {
-    const currentActive = field.active_per_category?.[categorySlug] ?? field.is_active;
+    const currentActive = field.active_per_category?.[categorySlug] ?? false;
     const newActive = !currentActive;
     const newPerCategory = { ...field.active_per_category, [categorySlug]: newActive };
 
@@ -177,10 +175,8 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
         field_key: fieldKey,
         field_label: newLabel.trim(),
         field_type: newType,
-        is_active: true,
         is_custom: true,
         sort_order: maxSort + 1,
-        applies_to: newAppliesTo,
         active_per_category: activePerCategory,
       } as any);
       if (error) throw error;
@@ -212,14 +208,8 @@ export function ProductFieldsCard({ refreshKey }: { refreshKey?: number }) {
     setOptionsDialogOpen(true);
   };
 
-  // Show all fields that have this category in their active_per_category, or fallback to applies_to
   const getFieldsForTab = (slug: string) =>
-    fields.filter((f) => {
-      // If active_per_category has an entry for this slug, show the field in this tab
-      if (f.active_per_category && slug in f.active_per_category) return true;
-      // Fallback: legacy applies_to logic
-      return f.applies_to === slug || f.applies_to === "beide";
-    });
+    fields.filter((f) => f.active_per_category && slug in f.active_per_category);
 
   return (
     <Card>

@@ -6,10 +6,8 @@ export interface FieldSetting {
   field_key: string;
   field_label: string;
   field_type: string;
-  is_active: boolean;
   is_custom: boolean;
   sort_order: number;
-  applies_to: string;
   active_per_category: Record<string, boolean>;
   options?: { id: string; label: string; sort_order: number }[];
 }
@@ -31,18 +29,11 @@ export function useProductFieldSettings(categorySlug?: string | null) {
 
         let allFields = (data || []) as unknown as FieldSetting[];
 
-        // Filter by category: use active_per_category if available, fallback to applies_to + is_active
         if (categorySlug) {
           allFields = allFields.filter((f) => {
             const perCat = f.active_per_category;
-            if (perCat && typeof perCat === "object" && categorySlug in perCat) {
-              return perCat[categorySlug] === true;
-            }
-            // Fallback: legacy logic
-            return f.is_active && (f.applies_to === categorySlug || f.applies_to === "beide");
+            return perCat && typeof perCat === "object" && perCat[categorySlug] === true;
           });
-        } else {
-          allFields = allFields.filter((f) => f.is_active);
         }
 
         // Fetch options for select fields

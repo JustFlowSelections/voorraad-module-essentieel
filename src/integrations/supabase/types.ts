@@ -127,39 +127,33 @@ export type Database = {
       product_field_settings: {
         Row: {
           active_per_category: Json
-          applies_to: string
           created_at: string
           field_key: string
           field_label: string
           field_type: string
           id: string
-          is_active: boolean
           is_custom: boolean
           sort_order: number
           updated_at: string
         }
         Insert: {
           active_per_category?: Json
-          applies_to?: string
           created_at?: string
           field_key: string
           field_label: string
           field_type?: string
           id?: string
-          is_active?: boolean
           is_custom?: boolean
           sort_order?: number
           updated_at?: string
         }
         Update: {
           active_per_category?: Json
-          applies_to?: string
           created_at?: string
           field_key?: string
           field_label?: string
           field_type?: string
           id?: string
-          is_active?: boolean
           is_custom?: boolean
           sort_order?: number
           updated_at?: string
