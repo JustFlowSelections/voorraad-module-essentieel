@@ -25,7 +25,6 @@ export function useProductFieldSettings(categorySlug?: string | null) {
           .from("product_field_settings")
           .select("*")
           .eq("is_active", true)
-          .eq("is_custom", true)
           .order("sort_order");
 
         if (error) throw error;
