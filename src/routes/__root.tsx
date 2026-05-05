@@ -83,7 +83,7 @@ function InnerApp() {
     router.update({
       context: { auth } as any,
     });
-    router.invalidate();
+    if (!auth.loading) { router.invalidate(); }
   }, [auth.isAuthenticated, auth.loading, auth.isAdmin]);
 
   if (auth.loading) {
