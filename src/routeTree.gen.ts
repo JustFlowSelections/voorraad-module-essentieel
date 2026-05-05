@@ -13,43 +13,39 @@ import { Route as ResetWachtwoordRouteImport } from './routes/reset-wachtwoord'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedInstellingenRouteImport } from './routes/_authenticated/instellingen'
 import { Route as AuthenticatedVoorraadRouteImport } from './routes/_authenticated/voorraad'
+import { Route as AuthenticatedInstellingenRouteImport } from './routes/_authenticated/instellingen'
 
 const ResetWachtwoordRoute = ResetWachtwoordRouteImport.update({
   id: '/reset-wachtwoord',
   path: '/reset-wachtwoord',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthenticatedInstellingenRoute = AuthenticatedInstellingenRouteImport.update({
-  id: '/instellingen',
-  path: '/instellingen',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-
 const AuthenticatedVoorraadRoute = AuthenticatedVoorraadRouteImport.update({
   id: '/voorraad',
   path: '/voorraad',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInstellingenRoute =
+  AuthenticatedInstellingenRouteImport.update({
+    id: '/instellingen',
+    path: '/instellingen',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -58,7 +54,6 @@ export interface FileRoutesByFullPath {
   '/instellingen': typeof AuthenticatedInstellingenRoute
   '/voorraad': typeof AuthenticatedVoorraadRoute
 }
-
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
@@ -66,7 +61,6 @@ export interface FileRoutesByTo {
   '/instellingen': typeof AuthenticatedInstellingenRoute
   '/voorraad': typeof AuthenticatedVoorraadRoute
 }
-
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
@@ -76,10 +70,14 @@ export interface FileRoutesById {
   '/_authenticated/instellingen': typeof AuthenticatedInstellingenRoute
   '/_authenticated/voorraad': typeof AuthenticatedVoorraadRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/reset-wachtwoord' | '/instellingen' | '/voorraad'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/reset-wachtwoord'
+    | '/instellingen'
+    | '/voorraad'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/login' | '/reset-wachtwoord' | '/instellingen' | '/voorraad'
   id:
@@ -92,7 +90,6 @@ export interface FileRouteTypes {
     | '/_authenticated/voorraad'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
@@ -130,18 +127,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/instellingen': {
-      id: '/_authenticated/instellingen'
-      path: '/instellingen'
-      fullPath: '/instellingen'
-      preLoaderRoute: typeof AuthenticatedInstellingenRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/voorraad': {
       id: '/_authenticated/voorraad'
       path: '/voorraad'
       fullPath: '/voorraad'
       preLoaderRoute: typeof AuthenticatedVoorraadRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/instellingen': {
+      id: '/_authenticated/instellingen'
+      path: '/instellingen'
+      fullPath: '/instellingen'
+      preLoaderRoute: typeof AuthenticatedInstellingenRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
@@ -167,16 +164,6 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetWachtwoordRoute: ResetWachtwoordRoute,
 }
-
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
