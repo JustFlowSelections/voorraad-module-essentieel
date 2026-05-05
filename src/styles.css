@@ -1,11 +1,17 @@
+@source "../node_modules/@flowselections/core/src";
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
-  button, [role="button"], a, [type="button"], [type="submit"], [type="reset"] {
+  button,
+  [role="button"],
+  a,
+  [type="button"],
+  [type="submit"],
+  [type="reset"] {
     cursor: pointer;
   }
 }
@@ -55,7 +61,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-muted: var(--sidebar-muted);
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
