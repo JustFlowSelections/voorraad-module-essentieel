@@ -1,12 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@flowselections/core";
+import { Input } from "@flowselections/core";
+import { Label } from "@flowselections/core";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@flowselections/core";
 import { toast } from "sonner";
-import { loginSchema } from "@/lib/validationSchemas";
-import { supabase } from "@/integrations/supabase/client";
+import { loginSchema } from "@flowselections/core";
+import { supabase } from "@flowselections/core";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: ({ context }) => {

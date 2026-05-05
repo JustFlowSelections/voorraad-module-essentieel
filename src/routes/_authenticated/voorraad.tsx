@@ -1,21 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Header } from "@flowselections/core";
+import { Button } from "@flowselections/core";
+import { Input } from "@flowselections/core";
 import { ImportProductsDialog } from "@/components/voorraad/ImportProductsDialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@flowselections/core";
 import { Plus, Search, Filter, Download, Upload, Loader2, LayoutGrid, List, Settings2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@flowselections/core";
+import { Checkbox } from "@flowselections/core";
 import * as XLSX from "xlsx";
 import { AddProductDialog } from "@/components/voorraad/AddProductDialog";
 import { ProductDetailDialog } from "@/components/voorraad/ProductDetailDialog";
 import { FolderBrowser, type BreadcrumbItem, type HierarchyLevel, type ColumnKey, ALL_COLUMNS } from "@/components/voorraad/FolderBrowser";
 import { InventoryProvider, useInventory, type InventoryItem, calculateStatus, type NewProductInput } from "@/contexts/InventoryContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@flowselections/core";
 
 export const Route = createFileRoute("/_authenticated/voorraad")({
   component: VoorraadWrapper,

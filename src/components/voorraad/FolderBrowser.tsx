@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ChevronRight, Folder, FolderOpen, Package, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@flowselections/core";
+import { Badge } from "@flowselections/core";
 import type { InventoryItem } from "@/contexts/InventoryContext";
 
 export type HierarchyLevel = string;

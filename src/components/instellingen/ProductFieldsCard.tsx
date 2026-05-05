@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flowselections/core";
+import { Button } from "@flowselections/core";
+import { Switch } from "@flowselections/core";
+import { Input } from "@flowselections/core";
+import { Label } from "@flowselections/core";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@flowselections/core";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flowselections/core";
 import { Loader2, Package, Plus, Trash2, GripVertical, List } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/icon-picker";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@flowselections/core";
 import { toast } from "sonner";
 import { FieldOptionsDialog } from "./FieldOptionsDialog";
 import {

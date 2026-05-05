@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flowselections/core";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@flowselections/core";
+import { Input } from "@flowselections/core";
+import { Label } from "@flowselections/core";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@flowselections/core";
 import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/icon-picker";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@flowselections/core";
 import { useProductFieldSettings, FieldSetting } from "@/hooks/useProductFieldSettings";
 import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
 

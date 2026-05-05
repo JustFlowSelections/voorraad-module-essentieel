@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flowselections/core";
+import { Button } from "@flowselections/core";
+import { Input } from "@flowselections/core";
 import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@flowselections/core";
 import { toast } from "sonner";
 import { IconPicker, DynamicIcon } from "@/components/ui/icon-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@flowselections/core";
 import { AVAILABLE_COLORS, getCategoryColor } from "@/lib/categoryColors";
 import {
   AlertDialog,
@@ -17,7 +17,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@flowselections/core";
 
 interface ProductCategory {
   id: string;

@@ -9,9 +9,9 @@ import {
   Heart, Star, CircleDot, Square, Triangle,
   Wheat, Clover, Trees, Mountain, Globe,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import { cn } from "@flowselections/core";
+import { Popover, PopoverContent, PopoverTrigger } from "@flowselections/core";
+import { Button } from "@flowselections/core";
 
 export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   leaf: Leaf,

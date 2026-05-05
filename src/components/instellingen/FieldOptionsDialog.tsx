@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@flowselections/core";
+import { Button } from "@flowselections/core";
+import { Input } from "@flowselections/core";
 import { Loader2, Plus, Trash2, GripVertical } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@flowselections/core";
 import { toast } from "sonner";
 
 interface FieldOption {

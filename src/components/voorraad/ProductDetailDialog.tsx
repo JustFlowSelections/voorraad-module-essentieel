@@ -1,14 +1,14 @@
 import { useRef, useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flowselections/core";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@flowselections/core";
+import { Badge } from "@flowselections/core";
+import { Input } from "@flowselections/core";
+import { Label } from "@flowselections/core";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@flowselections/core";
 import { Download, Package, Pencil, Save, X } from "lucide-react";
 import Barcode from "react-barcode";
 import { InventoryItem, calculateStatus } from "@/contexts/InventoryContext";

@@ -1,20 +1,20 @@
 import { useState, useCallback, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flowselections/core";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
+} from "@flowselections/core";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+} from "@flowselections/core";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import { Label } from "@/components/ui/label";
+} from "@flowselections/core";
+import { Label } from "@flowselections/core";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { DynamicIcon } from "@/components/ui/icon-picker";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@flowselections/core";
 import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
 import { useProductFieldSettings, type FieldSetting } from "@/hooks/useProductFieldSettings";
 

@@ -1,20 +1,13 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
-import type { AuthContext } from "./hooks/useAuth";
+import type { AuthContext } from "@flowselections/core";
 
 interface RouterContext {
   auth: AuthContext;
 }
 
-function DefaultErrorComponent({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
+function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -55,14 +48,11 @@ function DefaultErrorComponent({
 export const getRouter = () => {
   const router = createRouter({
     routeTree,
-    context: {
-      auth: undefined!,
-    },
+    context: { auth: undefined! },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
   });
-
   return router;
 };
 

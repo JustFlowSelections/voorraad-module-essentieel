@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useRouter } from "@tanstack/react-router";
-import { Toaster } from "@/components/ui/sonner";
-import { useAuthState, type AuthContext } from "@/hooks/useAuth";
-
+import { Toaster, useAuthState, type AuthContext } from "@flowselections/core";
 import appCss from "../styles.css?url";
 
 interface RouterContext {
@@ -37,7 +35,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Voorraadbeheer" },
-      { name: "description", content: "Voorraadbeheer systeem" },
+      { name: "description", content: "Voorraadbeheer module" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
