@@ -7,7 +7,7 @@ import { Label } from "@flowselections/core";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@flowselections/core";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flowselections/core";
 import { Loader2, Package, Plus, Trash2, GripVertical, List } from "lucide-react";
-import { DynamicIcon } from "@/components/ui/icon-picker";
+import { DynamicIcon } from "../ui/icon-picker";
 import { supabase } from "@flowselections/core";
 import { toast } from "sonner";
 import { FieldOptionsDialog } from "./FieldOptionsDialog";

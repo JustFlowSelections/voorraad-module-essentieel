@@ -11,8 +11,8 @@ import {
 } from "@flowselections/core";
 import { Download, Package, Pencil, Save, X } from "lucide-react";
 import Barcode from "react-barcode";
-import { InventoryItem, calculateStatus } from "@/contexts/InventoryContext";
-import { useProductFieldSettings } from "@/hooks/useProductFieldSettings";
+import { InventoryItem, calculateStatus } from "../../contexts/InventoryContext";
+import { useProductFieldSettings } from "../../hooks/useProductFieldSettings";
 
 interface ProductDetailDialogProps {
   open: boolean;

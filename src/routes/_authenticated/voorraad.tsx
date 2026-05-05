@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@flowselections/core";
 import { Button } from "@flowselections/core";
 import { Input } from "@flowselections/core";
-import { ImportProductsDialog } from "@/components/voorraad/ImportProductsDialog";
+import { ImportProductsDialog } from "../../components/voorraad/ImportProductsDialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@flowselections/core";
@@ -11,10 +11,10 @@ import { Plus, Search, Filter, Download, Upload, Loader2, LayoutGrid, List, Sett
 import { Popover, PopoverContent, PopoverTrigger } from "@flowselections/core";
 import { Checkbox } from "@flowselections/core";
 import * as XLSX from "xlsx";
-import { AddProductDialog } from "@/components/voorraad/AddProductDialog";
-import { ProductDetailDialog } from "@/components/voorraad/ProductDetailDialog";
-import { FolderBrowser, type BreadcrumbItem, type HierarchyLevel, type ColumnKey, ALL_COLUMNS } from "@/components/voorraad/FolderBrowser";
-import { InventoryProvider, useInventory, type InventoryItem, calculateStatus, type NewProductInput } from "@/contexts/InventoryContext";
+import { AddProductDialog } from "../../components/voorraad/AddProductDialog";
+import { ProductDetailDialog } from "../../components/voorraad/ProductDetailDialog";
+import { FolderBrowser, type BreadcrumbItem, type HierarchyLevel, type ColumnKey, ALL_COLUMNS } from "../../components/voorraad/FolderBrowser";
+import { InventoryProvider, useInventory, type InventoryItem, calculateStatus, type NewProductInput } from "../../contexts/InventoryContext";
 import { supabase } from "@flowselections/core";
 
 export const Route = createFileRoute("/_authenticated/voorraad")({

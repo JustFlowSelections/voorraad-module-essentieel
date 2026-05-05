@@ -9,10 +9,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@flowselections/core";
 import { RefreshCw, ArrowLeft, Loader2 } from "lucide-react";
-import { DynamicIcon } from "@/components/ui/icon-picker";
+import { DynamicIcon } from "../ui/icon-picker";
 import { supabase } from "@flowselections/core";
-import { useProductFieldSettings, FieldSetting } from "@/hooks/useProductFieldSettings";
-import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
+import { useProductFieldSettings, FieldSetting } from "../../hooks/useProductFieldSettings";
+import { getCategoryBgClass, getCategoryIconClass } from "../../lib/categoryColors";
 
 export interface NewProduct {
   product: string;

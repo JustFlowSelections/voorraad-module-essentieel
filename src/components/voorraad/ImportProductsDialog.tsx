@@ -11,12 +11,12 @@ import {
 } from "@flowselections/core";
 import { Label } from "@flowselections/core";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { DynamicIcon } from "@/components/ui/icon-picker";
+import { DynamicIcon } from "../ui/icon-picker";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@flowselections/core";
-import { getCategoryBgClass, getCategoryIconClass } from "@/lib/categoryColors";
-import { useProductFieldSettings, type FieldSetting } from "@/hooks/useProductFieldSettings";
+import { getCategoryBgClass, getCategoryIconClass } from "../../lib/categoryColors";
+import { useProductFieldSettings, type FieldSetting } from "../../hooks/useProductFieldSettings";
 
 interface ImportProductsDialogProps {
   open: boolean;

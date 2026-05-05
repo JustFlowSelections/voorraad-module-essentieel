@@ -5,9 +5,9 @@ import { Input } from "@flowselections/core";
 import { Tags, Plus, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@flowselections/core";
 import { toast } from "sonner";
-import { IconPicker, DynamicIcon } from "@/components/ui/icon-picker";
+import { IconPicker, DynamicIcon } from "../ui/icon-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@flowselections/core";
-import { AVAILABLE_COLORS, getCategoryColor } from "@/lib/categoryColors";
+import { AVAILABLE_COLORS, getCategoryColor } from "../../lib/categoryColors";
 import {
   AlertDialog,
   AlertDialogAction,

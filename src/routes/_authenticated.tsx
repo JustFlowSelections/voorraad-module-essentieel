@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
 import { Sidebar } from "@flowselections/core";
-import { voorraadModule } from "@/index";
+import { voorraadModule } from "../index";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
