@@ -1,0 +1,3 @@
+export declare const Route: import("@tanstack/router-core").Route<import("@tanstack/router-core").Register, never, never, never, never, never, undefined, import("@tanstack/router-core").ResolveParams<never>, import("@tanstack/router-core").AnyContext, import("@tanstack/router-core").AnyContext, import("@tanstack/router-core").AnyContext, {}, undefined, unknown, unknown, unknown, unknown, undefined>;
+export declare function VoorraadPage(): import("react/jsx-runtime").JSX.Element;
+//# sourceMappingURL=voorraad.d.ts.map

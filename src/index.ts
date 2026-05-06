@@ -7,6 +7,8 @@ import { LocationsCard } from "./components/instellingen/LocationsCard";
 import { ProductCategoriesCard } from "./components/instellingen/ProductCategoriesCard";
 import { ProductFieldsCard } from "./components/instellingen/ProductFieldsCard";
 
+export { VoorraadPage } from "./components/voorraad/VoorraadPage";
+
 export const voorraadModule: FlowModule = {
   id: "voorraad",
   name: "Voorraadbeheer",
