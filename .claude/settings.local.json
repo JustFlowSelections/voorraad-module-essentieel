@@ -8,7 +8,13 @@
       "Bash(git ls-remote *)",
       "Bash(git commit *)",
       "Bash(git tag *)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(npm version *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); core=d.get\\('packages',{}\\).get\\('node_modules/@flowselections/core',{}\\); print\\(json.dumps\\({k:core[k] for k in ['version','resolved','link'] if k in core}, indent=2\\)\\)\")",
+      "Bash(bun pm *)",
+      "Bash(node -e \"const v = require\\('./node_modules/tailwindcss/package.json'\\).version; console.log\\('tailwindcss:', v\\)\")",
+      "Bash(xargs -I{} grep -o \"\\\\.w-64\\\\|\\\\.bg-sidebar\\\\b\\\\|\\\\.fixed\\\\b\\\\|\\\\.h-screen\" {})",
+      "Bash(xargs grep -o \"\\\\.ml-64\\\\b\")"
     ]
   }
 }
