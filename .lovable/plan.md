@@ -90,6 +90,28 @@ src/routes/
     voorraad.tsx      — Voorraad module
 ```
 
+## Context providers
+
+Als je een React context gebruikt (createContext, useContext):
+- Wrap de provider ALTIJD intern in de pagina component die hem nodig heeft
+- NOOIT verwachten dat de shell of een bovenliggende component de provider mount
+- De shell weet niets van interne module state
+
+✅ Correct:
+export function MijnModulePage() {
+  return (
+    <MijnProvider>
+      <MijnModulePageInner />
+    </MijnProvider>
+  );
+}
+
+❌ Fout:
+export function MijnModulePage() {
+  const data = useMijnContext(); // crasht als provider niet aanwezig is
+  return <div>{data}</div>;
+}
+
 ## 6. Benodigde packages
 - `xlsx` — Excel import/export
 - `react-barcode` — Barcode weergave
