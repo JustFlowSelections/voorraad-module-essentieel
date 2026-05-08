@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts, useRouter } from "@tanstack/react-router";
 import { Toaster, useAuthState, type AuthContext } from "@flowselections/core";
-// TODO: CSS import verwijderd voor build — shell importeert globale styles via @flowselections/core
-// import appCss from "../styles.css?url";
+import appCss from "../styles.css?url";
 
 interface RouterContext {
   auth: AuthContext;
@@ -46,7 +45,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
-    links: [],
+    links: [{ rel: "stylesheet", href: appCss }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
