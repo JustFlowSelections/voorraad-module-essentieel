@@ -17,6 +17,14 @@ import { InventoryProvider, useInventory, type InventoryItem, calculateStatus, t
 import { supabase } from "@flowselections/core";
 
 export function VoorraadPage() {
+  return (
+    <InventoryProvider>
+      <VoorraadPageInner />
+    </InventoryProvider>
+  );
+}
+
+function VoorraadPageInner() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -169,10 +177,3 @@ export function VoorraadPage() {
   );
 }
 
-export function VoorraadPageWithProvider() {
-  return (
-    <InventoryProvider>
-      <VoorraadPage />
-    </InventoryProvider>
-  );
-}
