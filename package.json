@@ -1,6 +1,6 @@
 {
   "name": "@flowselections/voorraad",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": false,
   "sideEffects": false,
   "type": "module",
@@ -13,7 +13,9 @@
     },
     "./styles": "./dist-lib/styles.css"
   },
-  "files": ["dist-lib"],
+  "files": [
+    "dist-lib"
+  ],
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
