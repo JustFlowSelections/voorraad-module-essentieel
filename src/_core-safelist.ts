@@ -9,6 +9,12 @@
  * (Sidebar, Header, InstellingenPage, etc.) maar ontbreken in de build output.
  */
 
+// Layout wrapper — _authenticated.tsx
+const _layout = [
+  "min-h-screen bg-background",
+  "ml-64",
+] as const;
+
 // Sidebar layout — _authenticated.tsx → core/Sidebar.tsx
 const _sidebar = [
   // Structuur

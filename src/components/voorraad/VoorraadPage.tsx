@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Header } from "@flowselections/core";
 import { Button } from "@flowselections/core";
 import { Input } from "@flowselections/core";
 import {
@@ -109,7 +108,6 @@ function VoorraadPageInner() {
 
   return (
     <>
-      <Header title="Voorraadbeheer" />
       <div className="p-6 space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-1 gap-4">

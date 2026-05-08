@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
-import { Sidebar } from "@flowselections/core";
+import { Sidebar, Header } from "@flowselections/core";
 import { voorraadModule } from "../index";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -17,6 +17,7 @@ function AuthenticatedLayout() {
     <div className="min-h-screen bg-background">
       <Sidebar auth={context.auth} modules={[voorraadModule]} />
       <div className="ml-64">
+        <Header title="Voorraadbeheer" />
         <Outlet />
       </div>
     </div>
