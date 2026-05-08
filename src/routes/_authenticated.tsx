@@ -12,45 +12,33 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
 });
 
-// ─── DEBUG: tijdelijk — log CSS variabelen naar console ───────────────────────
+// ─── DEBUG: tijdelijk — zoek element dat sidebar overdekt ────────────────────
 function CssDebug() {
   useEffect(() => {
-    const root = document.documentElement;
-    const style = getComputedStyle(root);
-    const vars = [
-      "--sidebar",
-      "--sidebar-foreground",
-      "--sidebar-accent",
-      "--sidebar-muted",
-      "--sidebar-border",
-      "--background",
-      "--primary",
-    ];
-    console.group("🎨 CSS-variabelen debug");
-    vars.forEach((v) => {
-      const val = style.getPropertyValue(v).trim();
-      console.log(`${v}: "${val}" ${val ? "✅" : "❌ LEEG!"}`);
-    });
-
-    // Controleer of bg-sidebar klasse effect heeft
     const aside = document.querySelector("aside");
-    if (aside) {
-      const asideStyle = getComputedStyle(aside);
-      console.log("aside background-color:", asideStyle.backgroundColor);
-      console.log("aside className:", aside.className);
-    } else {
-      console.warn("❌ Geen <aside> element gevonden in de DOM");
-    }
+    if (!aside) { console.warn("❌ Geen <aside> in DOM"); return; }
 
-    // Controleer of de stylesheet geladen is
-    const sheets = Array.from(document.styleSheets);
-    console.log(`Geladen stylesheets: ${sheets.length}`);
-    sheets.forEach((s, i) => {
-      try {
-        console.log(`  [${i}] ${s.href || "(inline)"} — ${s.cssRules?.length ?? "?"} regels`);
-      } catch {
-        console.log(`  [${i}] ${s.href} — (CORS: regels niet leesbaar)`);
-      }
+    const rect = aside.getBoundingClientRect();
+    // Prik een punt midden in de sidebar
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + 80;
+
+    console.group("🔍 Wat ligt bovenop de sidebar?");
+    console.log(`aside rect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
+    console.log(`aside z-index (computed): ${getComputedStyle(aside).zIndex}`);
+    console.log(`aside visibility: ${getComputedStyle(aside).visibility}`);
+    console.log(`aside opacity: ${getComputedStyle(aside).opacity}`);
+
+    // Alle elementen op punt (x, y) — bovenste als eerste
+    const elements = document.elementsFromPoint(x, y);
+    console.log(`Elementen op punt (${Math.round(x)}, ${Math.round(y)}):`);
+    elements.slice(0, 8).forEach((el, i) => {
+      const s = getComputedStyle(el);
+      const tag = el.tagName.toLowerCase();
+      const cls = el.className?.toString().slice(0, 60);
+      console.log(
+        `  [${i}] <${tag}> class="${cls}" | bg="${s.backgroundColor}" z="${s.zIndex}" opacity="${s.opacity}"`
+      );
     });
     console.groupEnd();
   }, []);
