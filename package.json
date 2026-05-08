@@ -15,9 +15,10 @@
   "files": ["dist"],
   "scripts": {
     "dev": "vite dev",
-    "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc -p tsconfig.build.json --watch",
+    "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:lib": "tsc -p tsconfig.build.json",
+    "build:lib:watch": "tsc -p tsconfig.build.json --watch",
     "preview": "vite preview",
     "lint": "eslint ."
   },
