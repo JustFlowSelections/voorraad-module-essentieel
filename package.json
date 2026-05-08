@@ -10,14 +10,15 @@
     ".": {
       "types": "./dist-lib/index.d.ts",
       "default": "./dist-lib/index.js"
-    }
+    },
+    "./styles": "./dist-lib/styles.css"
   },
   "files": ["dist-lib"],
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "build:lib": "tsc -p tsconfig.build.json",
+    "build:lib": "tsc -p tsconfig.build.json && node -e \"require('fs').writeFileSync('dist-lib/styles.css', '@source \\\"./\\\";\\n')\"",
     "build:lib:watch": "tsc -p tsconfig.build.json --watch",
     "preview": "vite preview",
     "lint": "eslint ."
