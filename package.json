@@ -4,15 +4,15 @@
   "private": false,
   "sideEffects": false,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist-lib/index.js",
+  "types": "./dist-lib/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist-lib/index.d.ts",
+      "default": "./dist-lib/index.js"
     }
   },
-  "files": ["dist"],
+  "files": ["dist-lib"],
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
