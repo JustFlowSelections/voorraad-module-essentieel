@@ -1,11 +1,6 @@
+@source "../node_modules/@flowselections/core/dist";
 @import "tailwindcss";
 @import "tw-animate-css";
-
-/*
- * Scan de core bronbestanden voor Tailwind utility classes.
- * Zie ook src/_core-safelist.ts voor classes die altijd gegenereerd moeten worden.
- */
-@source "../node_modules/@flowselections/core/src";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 @custom-variant dark (&:is(.dark *));
