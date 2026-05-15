@@ -18,5 +18,5 @@
     "paths": {}
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "dist-lib", "src/routes", "src/router.tsx", "src/routeTree.gen.ts", "src/integrations"]
+  "exclude": ["node_modules", "dist", "dist-lib", "src/routes", "src/router.tsx", "src/routeTree.gen.ts", "src/integrations", "src/start.ts", "src/server.ts"]
 }
