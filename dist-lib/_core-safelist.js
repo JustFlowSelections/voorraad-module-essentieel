@@ -64,4 +64,43 @@ const _sidebar = [
     "rotate-180",
     "sidebar-scroll",
 ];
+// Categorie-kleur classes — lib/categoryColors.ts (dynamisch opgebouwd)
+const _categorySafelist = [
+    // emerald
+    "bg-emerald-500/10", "group-hover:bg-emerald-500/20",
+    "text-emerald-600", "bg-emerald-500",
+    // amber
+    "bg-amber-500/10", "group-hover:bg-amber-500/20",
+    "text-amber-600", "bg-amber-500",
+    // blue
+    "bg-blue-500/10", "group-hover:bg-blue-500/20",
+    "text-blue-600", "bg-blue-500",
+    // violet
+    "bg-violet-500/10", "group-hover:bg-violet-500/20",
+    "text-violet-600", "bg-violet-500",
+    // rose
+    "bg-rose-500/10", "group-hover:bg-rose-500/20",
+    "text-rose-600", "bg-rose-500",
+    // cyan
+    "bg-cyan-500/10", "group-hover:bg-cyan-500/20",
+    "text-cyan-600", "bg-cyan-500",
+    // orange
+    "bg-orange-500/10", "group-hover:bg-orange-500/20",
+    "text-orange-600", "bg-orange-500",
+    // pink
+    "bg-pink-500/10", "group-hover:bg-pink-500/20",
+    "text-pink-600", "bg-pink-500",
+    // teal
+    "bg-teal-500/10", "group-hover:bg-teal-500/20",
+    "text-teal-600", "bg-teal-500",
+    // indigo
+    "bg-indigo-500/10", "group-hover:bg-indigo-500/20",
+    "text-indigo-600", "bg-indigo-500",
+    // red
+    "bg-red-500/10", "group-hover:bg-red-500/20",
+    "text-red-600", "bg-red-500",
+    // lime
+    "bg-lime-500/10", "group-hover:bg-lime-500/20",
+    "text-lime-600", "bg-lime-500",
+];
 export {};
