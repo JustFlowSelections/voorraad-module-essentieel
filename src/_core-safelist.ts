@@ -12,7 +12,8 @@
 // Layout wrapper — _authenticated.tsx
 const _layout = [
   "min-h-screen bg-background",
-  "ml-64",
+  "ml-64 pt-16",
+  "items-start items-center justify-between",
 ] as const;
 
 // InstellingenPage — core/InstellingenPage.tsx
@@ -29,7 +30,7 @@ const _sidebar = [
   // Structuur
   "fixed left-0 top-0 z-40 h-screen w-64",
   "flex flex-col flex-1 flex-shrink-0",
-  "h-20 overflow-y-auto space-y-1",
+  "h-full h-20 overflow-y-auto space-y-1",
   "items-center justify-center justify-between",
   "w-full text-left",
   "ml-3",
