@@ -13,6 +13,14 @@ const _layout = [
     "min-h-screen bg-background",
     "ml-64",
 ];
+// InstellingenPage — core/InstellingenPage.tsx
+const _instellingen = [
+    "grid grid-cols-2 grid-cols-3",
+    "gap-2 gap-6",
+    "p-6",
+    "space-y-2 space-y-4 space-y-6",
+    "max-w-4xl mx-auto",
+];
 // Sidebar layout — _authenticated.tsx → core/Sidebar.tsx
 const _sidebar = [
     // Structuur

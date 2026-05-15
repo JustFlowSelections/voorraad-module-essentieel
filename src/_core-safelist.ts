@@ -15,6 +15,15 @@ const _layout = [
   "ml-64",
 ] as const;
 
+// InstellingenPage — core/InstellingenPage.tsx
+const _instellingen = [
+  "grid grid-cols-2 grid-cols-3",
+  "gap-2 gap-6",
+  "p-6",
+  "space-y-2 space-y-4 space-y-6",
+  "max-w-4xl mx-auto",
+] as const;
+
 // Sidebar layout — _authenticated.tsx → core/Sidebar.tsx
 const _sidebar = [
   // Structuur
